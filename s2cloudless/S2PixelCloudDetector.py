@@ -1,8 +1,11 @@
 import numpy as np
 import os.path
+import copy
 from .PixelClassifier import PixelClassifier
 from skimage.morphology import disk, dilation
 from scipy.ndimage.filters import convolve
+
+from sentinelhub import CustomUrlParam
 
 from sklearn.externals import joblib
 
@@ -130,7 +133,9 @@ class CloudMaskRequest:
 
     The user can then efficiently derive binary clouds masks based on a threshold.
 
-    :param ogc_request: An instance of WmsRequest or WcsRequest (defined in sentinelhub-py package).
+    :param ogc_request: An instance of WmsRequest or WcsRequest (defined in sentinelhub-py package). The cloud mask
+                        request creates a copy of this request and sets two custom url parameters: turns of the logo and
+                        adds a request for transparency layer, which is used to determine the (non) valid data pixels.
     :type ogc_request: data_request.WmsRequest or data_request.WcsRequest
     :param threshold: Defines cloud and non-cloud in the binary cloud mask.
     :type threshold: float
@@ -156,10 +161,21 @@ class CloudMaskRequest:
 
         self.cloud_detector = S2PixelCloudDetector(threshold=threshold, average_over=average_over, all_bands=all_bands,
                                                    dilation_size=dilation_size, model_filename=model_filename)
-        self.ogc_bands_request = ogc_request
 
+        self.ogc_bands_request = copy.deepcopy(ogc_request)
+        # Add the transparency layer to the request
+        # Transparency layer is used to determine valid data points
+        if self.ogc_bands_request.custom_url_params is None:
+            self.ogc_bands_request.custom_url_params = {CustomUrlParam.SHOWLOGO: False,
+                                                        CustomUrlParam.TRANSPARENT: True}
+        else:
+            self.ogc_bands_request.custom_url_params.update({CustomUrlParam.SHOWLOGO: False,
+                                                             CustomUrlParam.TRANSPARENT: True})
+
+        self.ogc_bands_request.create_request()
         self.bands = None
         self.probability_masks = None
+        self.valid_data = None
 
     def __len__(self):
         return len(self.bands)
@@ -178,14 +194,19 @@ class CloudMaskRequest:
         """
         return self.ogc_bands_request.get_dates()
 
-    def get_probability_masks(self):
+    def get_probability_masks(self, non_valid_value=0):
         """
-        Get probability maps of areas for each available date.
+        Get probability maps of areas for each available date. The pixels without valid data are assigned
+        non_valid_value.
+
+        :param non_valid_value: Value to be assigned to non valid data pixels
+
         :return: np.ndarray
         """
         if self.probability_masks is None:
             self.get_data()
-            self.probability_masks = self.cloud_detector.get_cloud_probability_maps(np.array(self.bands))
+            self.probability_masks = self.cloud_detector.get_cloud_probability_maps(self.bands)
+            self.probability_masks[self.valid_data == False] = non_valid_value
         return self.probability_masks
 
     def get_data(self):
@@ -194,11 +215,22 @@ class CloudMaskRequest:
         :return: np.ndarray
         """
         if self.bands is None:
-            self.bands = self.ogc_bands_request.get_data()
+            # last 'band' is the transperency layer
+            data = np.asarray(self.ogc_bands_request.get_data())
+            self.bands = data[..., :-1]
+            self.valid_data = (data[..., -1] > 0.5).astype(np.bool)
         return self.bands
+    
+    def get_valid_data(self):
+        """
+        Returns valid data mask. 
 
-    def get_cloud_masks(self, threshold=None):
-        """ The binary cloud mask is computed on the fly. Be cautious.
+        :return: np.ndarray 
+        """
+
+    def get_cloud_masks(self, threshold=None, non_valid_value=False):
+        """ The binary cloud mask is computed on the fly. Be cautious. The pixels without valid data are assigned
+        non_valid_value.
 
         :param threshold: A float from [0,1] specifying threshold
         :return: Binary cloud masks
@@ -217,5 +249,7 @@ class CloudMaskRequest:
             cloud_masks = np.asarray(
                 [dilation(cloud_mask, self.cloud_detector.dilation_filter) for cloud_mask in cloud_masks],
                 dtype=np.int8)
+
+        cloud_masks[self.valid_data == False] = non_valid_value
 
         return cloud_masks
