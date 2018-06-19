@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 
 setup(name='s2cloudless',
       version=__version__,

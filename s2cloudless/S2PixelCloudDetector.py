@@ -114,6 +114,18 @@ class S2PixelCloudDetector(object):
 
         cloud_probs = self.get_cloud_probability_maps(X)
 
+        return self.get_mask_from_prob(cloud_probs)
+
+    def get_mask_from_prob(self, cloud_probs):
+        """
+        Returns cloud mask by applying morphological operations -- convolution and dilation --
+        to input cloud probabilities.
+
+        :param cloud_probs: cloud probability map
+        :type cloud_probs: numpy array of cloud probabilities (shape n_images x n x m)
+        :return: raster cloud mask
+        :rtype: numpy array (shape n_images x n x m)
+        """
         if self.average_over:
             cloud_masks = np.asarray([convolve(cloud_prob, self.conv_filter) > self.threshold
                                       for cloud_prob in cloud_probs], dtype=np.int8)
