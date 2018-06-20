@@ -1,3 +1,6 @@
+[![Package version](https://badge.fury.io/py/s2cloudless.svg)](https://pypi.org/project/s2cloudless/)
+
+
 # Sentinel Hub's cloud detector for Sentinel-2 imagery
 
 The **s2cloudless** Python package provides automated cloud detection in
@@ -29,7 +32,7 @@ The package requires the following Python packages: (versions listed are the ver
  * [scikit-learn](http://scikit-learn.org/stable/) version 0.19.0
  * [scikit-image](http://scikit-image.org) version 0.13.0
  * [matplotlib](https://matplotlib.org) version 2.1.0
- * [LightGBM](https://pypi.python.org/pypi/lightgbm) version 2.0.11 
+ * [LightGBM](https://pypi.python.org/pypi/lightgbm) version 2.0.11
 
 The versions listed above are the versions, which we have used for testing and for which we can confirm the cloud
 detector works properly. It's very likely that the cloud detector works with other versions of these packages. See
