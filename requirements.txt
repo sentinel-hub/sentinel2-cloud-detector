@@ -1,0 +1,7 @@
+numpy
+scipy
+scikit-learn
+scikit-image
+matplotlib
+lightgbm
+sentinelhub>=2.3.0

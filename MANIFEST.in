@@ -1,0 +1,7 @@
+include requirements*.txt
+
+include README.md
+include LICENSE.md
+include setup.py
+include s2cloudless/models/*
+include s2cloudless/TestInputs/*
