@@ -1,3 +1,7 @@
+"""
+Module for making pixel-based classification on Sentinel-2 L1C imagery
+"""
+
 import numpy as np
 import os.path
 import copy
@@ -14,7 +18,7 @@ MODEL_FILENAME = 'pixel_s2_cloud_detector_lightGBM_v0.1.joblib.dat'
 MODEL_EVALSCRIPT = 'return [B01,B02,B04,B05,B08,B8A,B09,B10,B11,B12]'
 
 
-class S2PixelCloudDetector(object):
+class S2PixelCloudDetector:
     """
     Sentinel Hub's pixel-based cloud detector for Sentinel-2 imagery.
 
@@ -50,6 +54,7 @@ class S2PixelCloudDetector(object):
                            package is loaded.
     :type model_filename: str or None
     """
+    # pylint: disable=invalid-name
     def __init__(self, threshold=0.4, all_bands=False, average_over=1, dilation_size=1, model_filename=None):
 
         self.threshold = threshold
@@ -164,7 +169,7 @@ class CloudMaskRequest:
                       Set to ``False`` by default.
     :type all_bands: bool
     """
-
+    # pylint: disable=invalid-unary-operand-type
     def __init__(self, ogc_request, *, threshold=0.4, average_over=4,
                  dilation_size=2, model_filename=None, all_bands=False):
         self.average_over = average_over
@@ -218,7 +223,7 @@ class CloudMaskRequest:
         if self.probability_masks is None:
             self.get_data()
             self.probability_masks = self.cloud_detector.get_cloud_probability_maps(self.bands)
-            self.probability_masks[self.valid_data == False] = non_valid_value
+            self.probability_masks[~self.valid_data] = non_valid_value
         return self.probability_masks
 
     def get_data(self):
@@ -232,12 +237,12 @@ class CloudMaskRequest:
             self.bands = data[..., :-1]
             self.valid_data = (data[..., -1] > 0.5).astype(np.bool)
         return self.bands
-    
+
     def get_valid_data(self):
         """
-        Returns valid data mask. 
+        Returns valid data mask.
 
-        :return: np.ndarray 
+        :return: np.ndarray
         """
 
     def get_cloud_masks(self, threshold=None, non_valid_value=False):
@@ -262,6 +267,6 @@ class CloudMaskRequest:
                 [dilation(cloud_mask, self.cloud_detector.dilation_filter) for cloud_mask in cloud_masks],
                 dtype=np.int8)
 
-        cloud_masks[self.valid_data == False] = non_valid_value
+        cloud_masks[~self.valid_data] = non_valid_value
 
         return cloud_masks

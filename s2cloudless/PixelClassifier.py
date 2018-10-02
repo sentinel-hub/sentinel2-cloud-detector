@@ -1,4 +1,9 @@
-class PixelClassifier(object):
+"""
+Module implementing pixel-based classifier
+"""
+
+
+class PixelClassifier:
     """
     Pixel classifier extends a receptive field of a classifier over an entire image.
     The classifier's receptive field is in case of PixelClassifier a pixel (i.e, it
@@ -19,13 +24,14 @@ class PixelClassifier(object):
     :param classifier: trained classifier that will be executed over an entire image
     :type classifier: any classifier with predict(X) and predict_proba(X) methods
     """
-
+    # pylint: disable=invalid-name
     def __init__(self, classifier):
         self.receptive_field = (1, 1)
         self._check_classifier(classifier)
         self.classifier = classifier
 
-    def _check_classifier(self, classifier):
+    @staticmethod
+    def _check_classifier(classifier):
         """
         Check if the classifier implements predict and predict_proba methods.
         """
@@ -88,5 +94,3 @@ class PixelClassifier(object):
         probabilities = self.classifier.predict_proba(pixels)
 
         return probabilities.reshape(X.shape[0], X.shape[1], X.shape[2], probabilities.shape[1])
-
-

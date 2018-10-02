@@ -1,4 +1,7 @@
-""" Python script to test cloud detector """
+"""
+Python script to test cloud detector
+"""
+
 import logging
 import os.path
 import numpy as np
@@ -7,6 +10,7 @@ from s2cloudless import S2PixelCloudDetector
 
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
 
 def test_sentinelhub_cloud_detector(display=False):
     """
@@ -39,14 +43,14 @@ def test_sentinelhub_cloud_detector(display=False):
         LOGGER.info('Test FAILED.\nCloud probabilities DO NOT match templates.')
 
     if not mask_ok:
-            LOGGER.info('Test FAILED.\nCloud masks DO NOT match templates.')
+        LOGGER.info('Test FAILED.\nCloud masks DO NOT match templates.')
 
     if mask_ok and probs_ok:
         LOGGER.info('Test OK.\nCloud probabilities and cloud masks match templates.')
 
     # Display results
     if display:
-        fig = plt.figure(figsize=(20, 10))
+        _ = plt.figure(figsize=(20, 10))
         plt.subplot(131)
         plt.imshow(np.squeeze(templates['s2_im'])[:, :, [3, 2, 1]])
         plt.title('RGB image')
@@ -58,7 +62,7 @@ def test_sentinelhub_cloud_detector(display=False):
         plt.axis('off')
         plt.subplot(133)
         plt.imshow(np.squeeze(templates['s2_im'])[:, :, [3, 2, 1]])
-        plt.imshow(np.squeeze(cloud_mask),vmin=0, vmax=1, alpha=.4)
+        plt.imshow(np.squeeze(cloud_mask), vmin=0, vmax=1, alpha=.4)
         plt.title('RGB image with predicted mask overlay')
         plt.axis('off')
         plt.show()
