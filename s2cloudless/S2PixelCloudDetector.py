@@ -187,11 +187,9 @@ class CloudMaskRequest:
         # Add the transparency layer to the request
         # Transparency layer is used to determine valid data points
         if self.ogc_bands_request.custom_url_params is None:
-            self.ogc_bands_request.custom_url_params = {CustomUrlParam.SHOWLOGO: False,
-                                                        CustomUrlParam.TRANSPARENT: True}
-        else:
-            self.ogc_bands_request.custom_url_params.update({CustomUrlParam.SHOWLOGO: False,
-                                                             CustomUrlParam.TRANSPARENT: True})
+            self.ogc_bands_request.custom_url_params = {}
+        self.ogc_bands_request.custom_url_params.update({CustomUrlParam.SHOWLOGO: False,
+                                                         CustomUrlParam.TRANSPARENT: True})
 
         self.ogc_bands_request.create_request()
         self.bands = None
@@ -236,7 +234,7 @@ class CloudMaskRequest:
         :return: np.ndarray
         """
         if self.bands is None:
-            # last 'band' is the transperency layer
+            # last 'band' is the transparency layer
             data = np.asarray(self.ogc_bands_request.get_data())
             self.bands = data[..., :-1]
             self.valid_data = (data[..., -1] > 0.5).astype(np.bool)
@@ -254,6 +252,7 @@ class CloudMaskRequest:
         non_valid_value.
 
         :param threshold: A float from [0,1] specifying threshold
+        :param non_valid_value: Value which will be assigned to pixels without valid data
         :return: Binary cloud masks
         """
         self.get_probability_masks()
