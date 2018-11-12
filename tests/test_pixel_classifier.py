@@ -16,7 +16,7 @@ class TestPixelClassifier(unittest.TestCase):
         self.assertRaises(ValueError, PixelClassifier, "test")
 
     def test_extract_pixels(self):
-        w, x, y, z = np.ones((5)), np.ones((5, 5)), np.ones((5, 5, 5)), np.ones((5, 5, 5, 5))
+        w, x, y, z = np.ones(5), np.ones((5, 5)), np.ones((5, 5, 5)), np.ones((5, 5, 5, 5))
         cloud_detector = S2PixelCloudDetector()
         self.assertRaisesRegex(ValueError,
                                "Array of input images has to be a 4-dimensional array of shape",

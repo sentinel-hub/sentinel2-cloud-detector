@@ -3,9 +3,16 @@ Python script to test cloud detector
 """
 
 import logging
-import os.path
+import os
 import numpy as np
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    import matplotlib
+    matplotlib.use('agg')
+    import matplotlib.pyplot as plt
+
 from s2cloudless import S2PixelCloudDetector
 
 LOGGER = logging.getLogger(__name__)
@@ -22,8 +29,7 @@ def test_sentinelhub_cloud_detector(display=False):
     :type display: bool, default is False
     """
     # Load arrays
-    package_dir = os.path.dirname(__file__)
-    templates_filename = os.path.join(package_dir, './TestInputs/input_arrays.npz')
+    templates_filename = os.path.join(os.path.dirname(__file__), './TestInputs/input_arrays.npz')
     templates = np.load(templates_filename)
 
     # Classifier instance, image has all bands

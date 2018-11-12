@@ -1,5 +1,8 @@
 [![Package version](https://badge.fury.io/py/s2cloudless.svg)](https://pypi.org/project/s2cloudless/)
-
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/s2cloudless.svg?style=flat-square)](https://pypi.org/project/s2cloudless/)
+[![Build status](https://travis-ci.org/sentinel-hub/sentinel2-cloud-detector.svg?branch=master)](https://travis-ci.org/sentinel-hub/sentinel2-cloud-detector)
+[![Overall downloads](https://pepy.tech/badge/s2cloudless)](https://pepy.tech/project/s2cloudless)
+[![Last month downloads](https://pepy.tech/badge/s2cloudless/month)](https://pepy.tech/project/s2cloudless)
 
 # Sentinel Hub's cloud detector for Sentinel-2 imagery
 
@@ -23,26 +26,11 @@ $ python setup.py build
 $ python setup.py install
 ```
 
-### Requirements
-
-The package requires the following Python packages: (versions listed are the versions that we have used):
-
- * [numpy](https://pypi.python.org/pypi/numpy/) version 1.13.3
- * [scipy](https://pypi.python.org/pypi/scipy) version 0.19.1
- * [scikit-learn](http://scikit-learn.org/stable/) version 0.19.0
- * [scikit-image](http://scikit-image.org) version 0.13.0
- * [matplotlib](https://matplotlib.org) version 2.1.0
- * [LightGBM](https://pypi.python.org/pypi/lightgbm) version 2.0.11
-
-The versions listed above are the versions, which we have used for testing and for which we can confirm the cloud
-detector works properly. It's very likely that the cloud detector works with other versions of these packages. See
-the Test section below on how you can check your environment.
-
-## Input Sentinel-2 scenes
+## Input: Sentinel-2 scenes
 
 The input to cloud detector are Sentinel-2 images. In particular, the cloud detector requires the following 10
 Sentinel-2 band reflectances: B01, B02, B04, B05, B08, B8A, B09, B10, B11, B12, which are obtained from raw
-reflectance value in the following way: `Bi/10000`.
+reflectance value in the following way: `B_i/10000`.
 
 You don't need to worry about any of this, if you're doing classification of scenes obtained using Sentinel Hub's
 WMS or WCS services (i.e. using ours Python library [sentinelhub-py](https://github.com/sentinel-hub/sentinelhub-py)).
@@ -52,7 +40,7 @@ WMS or WCS services (i.e. using ours Python library [sentinelhub-py](https://git
 Please test the cloud detector after the installation by performing a classification on a test scene provided with
 this package. To execute it do the following:
 
-```
+```Python
 >>> import s2cloudless
 >>> s2cloudless.test_sentinelhub_cloud_detector()
 ```
@@ -67,7 +55,7 @@ Cloud probabilities and cloud masks match templates.
 ## Examples
 
 Jupyter notebook on how to use the cloud detector to produce cloud mask or cloud probability map
-can be found in the examples folder.
+can be found in the [examples folder](https://github.com/sentinel-hub/sentinel2-cloud-detector/tree/master/examples).
 
 ## License
 

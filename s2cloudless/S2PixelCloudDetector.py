@@ -2,9 +2,11 @@
 Module for making pixel-based classification on Sentinel-2 L1C imagery
 """
 
-import numpy as np
-import os.path
 import copy
+import os
+import warnings
+import numpy as np
+
 from .PixelClassifier import PixelClassifier
 from skimage.morphology import disk, dilation
 from scipy.ndimage.filters import convolve
@@ -13,6 +15,8 @@ from sentinelhub import CustomUrlParam
 
 from sklearn.externals import joblib
 
+
+warnings.filterwarnings("ignore", category=UserWarning)
 
 MODEL_FILENAME = 'pixel_s2_cloud_detector_lightGBM_v0.1.joblib.dat'
 MODEL_EVALSCRIPT = 'return [B01,B02,B04,B05,B08,B8A,B09,B10,B11,B12]'

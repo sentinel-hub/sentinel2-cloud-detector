@@ -1,7 +1,8 @@
-numpy
-scipy
-scikit-learn
-scikit-image
-matplotlib
-lightgbm
+numpy>=1.13.3
+scipy>=0.19.1
+scikit-learn>=0.19.0
+scikit-image>=0.13.0
+matplotlib>=2.1.0; python_version < '3.7'
+matplotlib>=3.0.2; python_version >= '3.7'
+lightgbm>=2.0.11
 sentinelhub>=2.3.0
