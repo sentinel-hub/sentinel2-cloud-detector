@@ -5,4 +5,4 @@ scikit-image>=0.13.0
 matplotlib>=2.1.0; python_version < '3.7'
 matplotlib>=3.0.2; python_version >= '3.7'
 lightgbm>=2.0.11
-sentinelhub>=2.3.0
+sentinelhub>=2.4.6

@@ -7,4 +7,4 @@ from .PixelClassifier import PixelClassifier
 from .test_cloud_detector import test_sentinelhub_cloud_detector
 
 
-__version__ = '1.2.1'
+__version__ = '1.2.2'
