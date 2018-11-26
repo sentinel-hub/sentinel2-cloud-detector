@@ -21,6 +21,9 @@ class TestCloudDetector(TestS2Cloudless):
         self.assertTrue(np.isclose(cloud_probs, self.templates['cl_probs']).all())
         self.assertTrue(np.array_equal(cloud_mask, self.templates['cl_mask']))
 
+        cloud_detector = S2PixelCloudDetector(all_bands=False)
+        self.assertRaises(ValueError, lambda: cloud_detector.get_cloud_probability_maps(self.templates['s2_im']))
+
 
 class TestCloudMaskRequest(TestS2Cloudless):
 
@@ -40,7 +43,7 @@ class TestCloudMaskRequest(TestS2Cloudless):
                                  instance_id=cls.CONFIG.instance_id)
         wcs_request = WcsRequest(layer='TRUE-COLOR-S2-L1C', bbox=bbox2, time='2016-07-18T07:14:04',
                                  resx='100m', resy='100m',
-                                 image_format=MimeType.PNG, custom_url_params=custom_url_params, data_folder='.')
+                                 image_format=MimeType.PNG, data_folder='.')
 
         cls.test_cases = [
             TestCaseContainer('WMS', CloudMaskRequest(wms_request, threshold=0.6, average_over=2, dilation_size=5),

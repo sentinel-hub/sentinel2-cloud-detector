@@ -25,6 +25,9 @@ S2_BANDS_EVALSCRIPT = 'return [B01,B02,B03,B04,B05,B06,B07,B08,B8A,B09,B10,B11,B
 
 
 class S2PixelCloudDetector:
+
+    BAND_IDXS = [0, 1, 3, 4, 7, 8, 9, 10, 11, 12]
+
     """
     Sentinel Hub's pixel-based cloud detector for Sentinel-2 imagery.
 
@@ -69,11 +72,6 @@ class S2PixelCloudDetector:
 
         self._load_classifier(model_filename)
 
-        # indices of the 10 bands that are used by the classifier to
-        # make the classification. This is used in case the input is
-        # n x m x 13 (all bands)
-        self.band_idxs = [0, 1, 3, 4, 7, 8, 9, 10, 11, 12]
-
         if average_over > 0:
             self.conv_filter = disk(average_over) / np.sum(disk(average_over))
 
@@ -99,8 +97,14 @@ class S2PixelCloudDetector:
         :return: cloud probability map
         :rtype: numpy array (shape n_images x n x m)
         """
+        band_num = X.shape[-1]
+        exp_bands = 13 if self.all_bands else len(self.BAND_IDXS)
+        if band_num != exp_bands:
+            raise ValueError("Parameter 'all_bands' is set to {}. Therefore expected band data with {} bands, "
+                             "got {} bands".format(self.all_bands, exp_bands, band_num))
+
         if self.all_bands:
-            X = X[..., self.band_idxs]
+            X = X[..., self.BAND_IDXS]
 
         return self.classifier.image_predict_proba(X)[..., 1]
 
