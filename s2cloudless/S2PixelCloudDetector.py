@@ -11,7 +11,7 @@ from .PixelClassifier import PixelClassifier
 from skimage.morphology import disk, dilation
 from scipy.ndimage.filters import convolve
 
-from sentinelhub import CustomUrlParam
+from sentinelhub import CustomUrlParam, MimeType
 
 from sklearn.externals import joblib
 
@@ -19,7 +19,9 @@ from sklearn.externals import joblib
 warnings.filterwarnings("ignore", category=UserWarning)
 
 MODEL_FILENAME = 'pixel_s2_cloud_detector_lightGBM_v0.1.joblib.dat'
+
 MODEL_EVALSCRIPT = 'return [B01,B02,B04,B05,B08,B8A,B09,B10,B11,B12]'
+S2_BANDS_EVALSCRIPT = 'return [B01,B02,B03,B04,B05,B06,B07,B08,B8A,B09,B10,B11,B12]'
 
 
 class S2PixelCloudDetector:
@@ -37,23 +39,18 @@ class S2PixelCloudDetector:
     convolution with disk (with user defined filter size) and dilation with disk
     (with user defined filter size).
 
-
     :param threshold: Cloud probability threshold. All pixels with cloud probability above
                       threshold value are masked as cloudy pixels. Default is 0.4.
     :type threshold: float
-
     :param all_bands: Flag specifying that input images will consists of all 13 Sentinel-2 bands.
     :type all_bands: bool
-
     :param average_over: Size of the disk in pixels for performing convolution (averaging probability
                          over pixels). Value 0 means do not perform this post-processing step.
                          Default is 1.
     :type average_over: int
-
     :param dilation_size: Size of the disk in pixels for performing dilation. Value 0 means do not perform
                           this post-processing step. Default is 1.
     :type dilation_size: int
-
     :param model_filename: Location of the serialised model. If None the default model provided with the
                            package is loaded.
     :type model_filename: str or None
@@ -78,7 +75,7 @@ class S2PixelCloudDetector:
         self.band_idxs = [0, 1, 3, 4, 7, 8, 9, 10, 11, 12]
 
         if average_over > 0:
-            self.conv_filter = disk(average_over)/np.sum(disk(average_over))
+            self.conv_filter = disk(average_over) / np.sum(disk(average_over))
 
         if dilation_size > 0:
             self.dilation_filter = disk(dilation_size)
@@ -125,21 +122,25 @@ class S2PixelCloudDetector:
 
         return self.get_mask_from_prob(cloud_probs)
 
-    def get_mask_from_prob(self, cloud_probs):
+    def get_mask_from_prob(self, cloud_probs, threshold=None):
         """
         Returns cloud mask by applying morphological operations -- convolution and dilation --
         to input cloud probabilities.
 
         :param cloud_probs: cloud probability map
         :type cloud_probs: numpy array of cloud probabilities (shape n_images x n x m)
+        :param threshold: A float from [0,1] specifying threshold
+        :type threshold: float
         :return: raster cloud mask
         :rtype: numpy array (shape n_images x n x m)
         """
+        threshold = self.threshold if threshold is None else threshold
+
         if self.average_over:
-            cloud_masks = np.asarray([convolve(cloud_prob, self.conv_filter) > self.threshold
+            cloud_masks = np.asarray([convolve(cloud_prob, self.conv_filter) > threshold
                                       for cloud_prob in cloud_probs], dtype=np.int8)
         else:
-            cloud_masks = (cloud_probs > self.threshold).astype(np.int8)
+            cloud_masks = (cloud_probs > threshold).astype(np.int8)
 
         if self.dilation_size:
             cloud_masks = np.asarray([dilation(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks],
@@ -165,53 +166,89 @@ class CloudMaskRequest:
     :type average_over: int
     :param dilation_size: The size of the structural element with which we dilate in the postprocessing.
     :type dilation_size: int
-
     :param model_filename: Location of the serialised model. If None the default model provided with the package
                            is loaded.
     :type model_filename: str or None
-    :param all_bands: Tells the cloud detector that it will be passed all bands (instead of just the 10 that it needs).
-                      Set to ``False`` by default.
+    :param all_bands: If ``True`` all S-2 bands will be downloaded and if ``False`` only required bands will
+        be downloaded. In both cases only required bands will be used for further processing.
     :type all_bands: bool
     """
     # pylint: disable=invalid-unary-operand-type
-    def __init__(self, ogc_request, *, threshold=0.4, average_over=4,
-                 dilation_size=2, model_filename=None, all_bands=False):
+    def __init__(self, ogc_request, *, threshold=0.4, average_over=4, dilation_size=2, model_filename=None,
+                 all_bands=False):
+        self.threshold = threshold
         self.average_over = average_over
         self.dilation_size = dilation_size
-        self.threshold = threshold
+        self.all_bands = all_bands
 
         self.cloud_detector = S2PixelCloudDetector(threshold=threshold, average_over=average_over, all_bands=all_bands,
                                                    dilation_size=dilation_size, model_filename=model_filename)
 
-        self.ogc_bands_request = copy.deepcopy(ogc_request)
-        # Add the transparency layer to the request
-        # Transparency layer is used to determine valid data points
-        if self.ogc_bands_request.custom_url_params is None:
-            self.ogc_bands_request.custom_url_params = {}
-        self.ogc_bands_request.custom_url_params.update({CustomUrlParam.SHOWLOGO: False,
-                                                         CustomUrlParam.TRANSPARENT: True})
+        self.ogc_request = copy.deepcopy(ogc_request)
+        self._prepare_ogc_request_params()
 
-        self.ogc_bands_request.create_request()
         self.bands = None
         self.probability_masks = None
         self.valid_data = None
 
+    def _prepare_ogc_request_params(self):
+        """ Method makes sure that correct parameters will be used for download of S-2 bands.
+        """
+        self.ogc_request.image_format = MimeType.TIFF_d32f
+        if self.ogc_request.custom_url_params is None:
+            self.ogc_request.custom_url_params = {}
+        self.ogc_request.custom_url_params.update({
+            CustomUrlParam.SHOWLOGO: False,
+            CustomUrlParam.TRANSPARENT: True,
+            CustomUrlParam.EVALSCRIPT: S2_BANDS_EVALSCRIPT if self.all_bands else MODEL_EVALSCRIPT,
+            CustomUrlParam.ATMFILTER: 'NONE'
+        })
+        self.ogc_request.create_request()
+
     def __len__(self):
-        return len(self.bands)
+        return len(self.get_dates())
 
     def __iter__(self):
         self.get_probability_masks()
         cloud_masks = self.get_cloud_masks()
         return iter(
-            [(self.probability_masks[idx], cloud_masks[idx], self.bands[idx]) for idx, _ in
-             enumerate(self.bands)])
+            [(self.probability_masks[idx], cloud_masks[idx], self.bands[idx]) for idx, _ in enumerate(self.bands)]
+        )
 
     def get_dates(self):
+        """ Get the list of dates from within date range for which data of the bbox is available.
+
+        :return: A list of dates
+        :rtype: list(datetime.datetime)
         """
-        Get the list of dates from within date range for which data of the bbox is available.
-        :return: List[datetime.datetime]
+        return self.ogc_request.get_dates()
+
+    def get_data(self):
+        """ Returns downloaded bands
+
+        :return: numpy array of shape `(times, height, width, bands)`
+        :rtype: numpy.ndarray
         """
-        return self.ogc_bands_request.get_dates()
+        if self.bands is None:
+            self._set_band_and_valid_mask()
+        return self.bands
+
+    def get_valid_data(self):
+        """ Returns valid data mask.
+
+        :return: numpy array of shape `(times, height, width)`
+        :rtype: numpy.ndarray
+        """
+        if self.valid_data is None:
+            self._set_band_and_valid_mask()
+        return self.valid_data
+
+    def _set_band_and_valid_mask(self):
+        """ Downloads band data and valid mask. Sets parameters self.bands, self.valid_data
+        """
+        data = np.asarray(self.ogc_request.get_data())
+        self.bands = data[..., :-1]
+        self.valid_data = (data[..., -1] == 1.0).astype(np.bool)
 
     def get_probability_masks(self, non_valid_value=0):
         """
@@ -219,57 +256,31 @@ class CloudMaskRequest:
         non_valid_value.
 
         :param non_valid_value: Value to be assigned to non valid data pixels
-
-        :return: np.ndarray
+        :type non_valid_value: float
+        :return: Probability map of shape `(times, height, width)` and `dtype=numpy.float64`
+        :rtype: numpy.ndarray
         """
         if self.probability_masks is None:
             self.get_data()
             self.probability_masks = self.cloud_detector.get_cloud_probability_maps(self.bands)
-            self.probability_masks[~self.valid_data] = non_valid_value
+
+        self.probability_masks[~self.valid_data] = non_valid_value
         return self.probability_masks
-
-    def get_data(self):
-        """
-        w-times-h rasters for all n dates.
-        :return: np.ndarray
-        """
-        if self.bands is None:
-            # last 'band' is the transparency layer
-            data = np.asarray(self.ogc_bands_request.get_data())
-            self.bands = data[..., :-1]
-            self.valid_data = (data[..., -1] > 0.5).astype(np.bool)
-        return self.bands
-
-    def get_valid_data(self):
-        """
-        Returns valid data mask.
-
-        :return: np.ndarray
-        """
 
     def get_cloud_masks(self, threshold=None, non_valid_value=False):
         """ The binary cloud mask is computed on the fly. Be cautious. The pixels without valid data are assigned
         non_valid_value.
 
         :param threshold: A float from [0,1] specifying threshold
+        :type threshold: float
         :param non_valid_value: Value which will be assigned to pixels without valid data
-        :return: Binary cloud masks
+        :type non_valid_value: int in range `[-254, 255]`
+        :return: Binary cloud masks of shape `(times, height, width)` and `dtype=numpy.int8`
+        :rtype: numpy.ndarray
         """
         self.get_probability_masks()
-        threshold = self.threshold if threshold is None else threshold
 
-        if self.average_over:
-            cloud_masks = np.asarray(
-                [convolve(cloud_prob, self.cloud_detector.conv_filter) > threshold for cloud_prob in
-                 self.probability_masks], dtype=np.int8)
-        else:
-            cloud_masks = (self.probability_masks > threshold).astype(np.int8)
-
-        if self.dilation_size:
-            cloud_masks = np.asarray(
-                [dilation(cloud_mask, self.cloud_detector.dilation_filter) for cloud_mask in cloud_masks],
-                dtype=np.int8)
-
+        cloud_masks = self.cloud_detector.get_mask_from_prob(self.probability_masks, threshold)
         cloud_masks[~self.valid_data] = non_valid_value
 
         return cloud_masks
