@@ -207,7 +207,7 @@ class CloudMaskRequest:
             CustomUrlParam.EVALSCRIPT: S2_BANDS_EVALSCRIPT if self.all_bands else MODEL_EVALSCRIPT,
             CustomUrlParam.ATMFILTER: 'NONE'
         })
-        self.ogc_request.create_request()
+        self.ogc_request.create_request(reset_wfs_iterator=False)
 
     def __len__(self):
         return len(self.get_dates())
