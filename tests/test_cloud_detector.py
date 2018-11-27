@@ -12,6 +12,8 @@ class TestCloudDetector(TestS2Cloudless):
 
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
+
         cls.templates = np.load(cls.INPUT_DATA_FILE)
 
     def test_cloud_detector(self):
@@ -29,6 +31,8 @@ class TestCloudMaskRequest(TestS2Cloudless):
 
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
+
         bbox1 = BBox([-90.9216499, 14.4190528, -90.8186531, 14.5520163], crs=CRS.WGS84)  # From examples
         bbox2 = BBox([46.16, -16.15, 46.51, -15.58], crs=CRS.WGS84)  # From sentinelhub-py examples
         custom_url_params = {
