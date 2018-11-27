@@ -7,13 +7,13 @@ import os
 import warnings
 import numpy as np
 
-from .PixelClassifier import PixelClassifier
-from skimage.morphology import disk, dilation
 from scipy.ndimage.filters import convolve
+from skimage.morphology import disk, dilation
+from sklearn.externals import joblib
 
 from sentinelhub import CustomUrlParam, MimeType
 
-from sklearn.externals import joblib
+from .PixelClassifier import PixelClassifier
 
 
 warnings.filterwarnings("ignore", category=UserWarning)
