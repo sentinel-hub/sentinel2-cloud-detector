@@ -25,9 +25,6 @@ S2_BANDS_EVALSCRIPT = 'return [B01,B02,B03,B04,B05,B06,B07,B08,B8A,B09,B10,B11,B
 
 
 class S2PixelCloudDetector:
-
-    BAND_IDXS = [0, 1, 3, 4, 7, 8, 9, 10, 11, 12]
-
     """
     Sentinel Hub's pixel-based cloud detector for Sentinel-2 imagery.
 
@@ -58,6 +55,8 @@ class S2PixelCloudDetector:
                            package is loaded.
     :type model_filename: str or None
     """
+    BAND_IDXS = [0, 1, 3, 4, 7, 8, 9, 10, 11, 12]
+
     # pylint: disable=invalid-name
     def __init__(self, threshold=0.4, all_bands=False, average_over=1, dilation_size=1, model_filename=None):
 
