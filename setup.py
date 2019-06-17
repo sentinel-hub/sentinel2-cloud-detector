@@ -34,9 +34,7 @@ setup(
     packages=find_packages(),
     package_dir={'': '.'},
     include_package_data=True,
-    package_data={'s2cloudless': ['models/pixel_s2_cloud_detector_lightGBM_v0.1.joblib.dat',
-                                  'TestInputs/input_arrays.npz']
-                  },
+    package_data={'s2cloudless': ['models/pixel_s2_cloud_detector_lightGBM_v0.1.joblib.dat']},
     install_requires=parse_requirements('requirements.txt'),
     extras_require={'DEV': parse_requirements('requirements-dev.txt')},
     zip_safe=False,
