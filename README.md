@@ -32,7 +32,6 @@ check [LightGBM installation guide](https://lightgbm.readthedocs.io/en/latest/In
 Before installing `s2cloudless` on **Windows** it is recommended to install package `shapely` from
 [Unofficial Windows wheels repository](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
 
-
 ## Input: Sentinel-2 scenes
 
 The input to cloud detector are Sentinel-2 images. In particular, the cloud detector requires the following 10
@@ -41,23 +40,6 @@ reflectance value in the following way: `B_i/10000`.
 
 You don't need to worry about any of this, if you're doing classification of scenes obtained using Sentinel Hub's
 WMS or WCS services (i.e. using ours Python library [sentinelhub-py](https://github.com/sentinel-hub/sentinelhub-py)).
-
-## Test
-
-Please test the cloud detector after the installation by performing a classification on a test scene provided with
-this package. To execute it do the following:
-
-```Python
->>> import s2cloudless
->>> s2cloudless.test_sentinelhub_cloud_detector()
-```
-
-In case your installation is fine and cloud detector works properly you should get the following output:
-
-```
-INFO:s2cloudless.test_cloud_detector:Test OK.
-Cloud probabilities and cloud masks match templates.
-```
 
 ## Examples
 
