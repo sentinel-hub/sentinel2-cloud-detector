@@ -2,6 +2,7 @@
 Module implementing pixel-based classifier
 """
 import numpy as np
+from lightgbm import Booster
 
 
 class PixelClassifier:
@@ -40,9 +41,16 @@ class PixelClassifier:
         """
         Check if the classifier implements predict method
         """
+        if isinstance(classifier, Booster):
+            return
+
         predict = getattr(classifier, 'predict', None)
         if not callable(predict):
             raise ValueError('Classifier does not have a predict method!')
+
+        predict_proba = getattr(classifier, 'predict_proba', None)
+        if not callable(predict_proba):
+            raise ValueError('Classifier does not have a predict_proba method!')
 
     @staticmethod
     def extract_pixels(X):
@@ -74,6 +82,10 @@ class PixelClassifier:
         """
         pixels = self.extract_pixels(X)
 
+        if isinstance(self.classifier, Booster):
+            raise NotImplementedError('An instance of lightgbm.Booster can only return prediction probabilities, '
+                                      'use PixelClassifier.image_predict_proba instead')
+
         predictions = self.classifier.predict(pixels)
 
         return predictions.reshape(X.shape[0], X.shape[1], X.shape[2])
@@ -90,10 +102,10 @@ class PixelClassifier:
         """
         pixels = self.extract_pixels(X)
 
-        if hasattr(self.classifier, 'predict_proba'):
-            probabilities = self.classifier.predict_proba(pixels)
-        else:
+        if isinstance(self.classifier, Booster):
             probabilities = self.classifier.predict(pixels)
             probabilities = np.vstack((1. - probabilities, probabilities)).transpose()
+        else:
+            probabilities = self.classifier.predict_proba(pixels)
 
         return probabilities.reshape(X.shape[0], X.shape[1], X.shape[2], probabilities.shape[1])
