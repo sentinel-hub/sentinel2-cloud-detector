@@ -1,6 +1,7 @@
 """
 Module implementing pixel-based classifier
 """
+import numpy as np
 
 
 class PixelClassifier:
@@ -26,22 +27,22 @@ class PixelClassifier:
     """
     # pylint: disable=invalid-name
     def __init__(self, classifier):
-        self.receptive_field = (1, 1)
+        """
+        :param classifier: An instance of classification object which should have a method predict and either a method
+            predict_proba or an option to call predict(data, raw_score=True)
+        :type classifier: object
+        """
         self._check_classifier(classifier)
         self.classifier = classifier
 
     @staticmethod
     def _check_classifier(classifier):
         """
-        Check if the classifier implements predict and predict_proba methods.
+        Check if the classifier implements predict method
         """
-        predict = getattr(classifier, "predict", None)
+        predict = getattr(classifier, 'predict', None)
         if not callable(predict):
             raise ValueError('Classifier does not have a predict method!')
-
-        predict_proba = getattr(classifier, "predict_proba", None)
-        if not callable(predict_proba):
-            raise ValueError('Classifier does not have a predict_proba method!')
 
     @staticmethod
     def extract_pixels(X):
@@ -71,7 +72,6 @@ class PixelClassifier:
         :return: raster classification map
         :rtype: numpy array, [n_samples, n_pixels_y, n_pixels_x]
         """
-
         pixels = self.extract_pixels(X)
 
         predictions = self.classifier.predict(pixels)
@@ -88,9 +88,12 @@ class PixelClassifier:
         :return: classification probability map
         :rtype: numpy array, [n_samples, n_pixels_y, n_pixels_x]
         """
-
         pixels = self.extract_pixels(X)
 
-        probabilities = self.classifier.predict_proba(pixels)
+        if hasattr(self.classifier, 'predict_proba'):
+            probabilities = self.classifier.predict_proba(pixels)
+        else:
+            probabilities = self.classifier.predict(pixels)
+            probabilities = np.vstack((1. - probabilities, probabilities)).transpose()
 
         return probabilities.reshape(X.shape[0], X.shape[1], X.shape[2], probabilities.shape[1])

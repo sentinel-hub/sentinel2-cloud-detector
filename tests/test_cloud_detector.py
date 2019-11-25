@@ -20,7 +20,7 @@ class TestCloudDetector(TestS2Cloudless):
         cloud_detector = S2PixelCloudDetector(all_bands=True)
         cloud_probs = cloud_detector.get_cloud_probability_maps(self.templates['s2_im'])
         cloud_mask = cloud_detector.get_cloud_masks(self.templates['s2_im'])
-        self.assertTrue(np.isclose(cloud_probs, self.templates['cl_probs']).all())
+        self.assertTrue(np.array_equal(cloud_probs, self.templates['cl_probs']))
         self.assertTrue(np.array_equal(cloud_mask, self.templates['cl_mask']))
 
         cloud_detector = S2PixelCloudDetector(all_bands=False)
