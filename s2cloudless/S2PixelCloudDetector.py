@@ -68,8 +68,9 @@ class S2PixelCloudDetector:
         if model_filename is None:
             package_dir = os.path.dirname(__file__)
             model_filename = os.path.join(package_dir, 'models', MODEL_FILENAME)
+        self.model_filename = model_filename
 
-        self._load_classifier(model_filename)
+        self._classifier = None
 
         if average_over > 0:
             self.conv_filter = disk(average_over) / np.sum(disk(average_over))
@@ -77,11 +78,16 @@ class S2PixelCloudDetector:
         if dilation_size > 0:
             self.dilation_filter = disk(dilation_size)
 
-    def _load_classifier(self, filename):
+    @property
+    def classifier(self):
         """
-        Loads the classifier.
+        Provides a classifier object. It also loads it if it hasn't been loaded yet. This way the classifier is loaded
+        only when it is actually required.
         """
-        self.classifier = PixelClassifier(joblib.load(filename))
+        if self._classifier is None:
+            self._classifier = PixelClassifier(joblib.load(self.model_filename))
+
+        return self._classifier
 
     def get_cloud_probability_maps(self, X):
         """
