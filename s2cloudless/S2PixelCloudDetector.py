@@ -4,21 +4,18 @@ Module for making pixel-based classification on Sentinel-2 L1C imagery
 
 import copy
 import os
-import warnings
 import numpy as np
 
 from scipy.ndimage.filters import convolve
 from skimage.morphology import disk, dilation
-from sklearn.externals import joblib
+from lightgbm import Booster
 
 from sentinelhub import CustomUrlParam, MimeType
 
 from .PixelClassifier import PixelClassifier
 
 
-warnings.filterwarnings("ignore", category=UserWarning)
-
-MODEL_FILENAME = 'pixel_s2_cloud_detector_lightGBM_v0.1.joblib.dat'
+MODEL_FILENAME = 'pixel_s2_cloud_detector_lightGBM_v0.1.txt'
 
 MODEL_EVALSCRIPT = 'return [B01,B02,B04,B05,B08,B8A,B09,B10,B11,B12]'
 S2_BANDS_EVALSCRIPT = 'return [B01,B02,B03,B04,B05,B06,B07,B08,B8A,B09,B10,B11,B12]'
@@ -68,8 +65,9 @@ class S2PixelCloudDetector:
         if model_filename is None:
             package_dir = os.path.dirname(__file__)
             model_filename = os.path.join(package_dir, 'models', MODEL_FILENAME)
+        self.model_filename = model_filename
 
-        self._load_classifier(model_filename)
+        self._classifier = None
 
         if average_over > 0:
             self.conv_filter = disk(average_over) / np.sum(disk(average_over))
@@ -77,11 +75,16 @@ class S2PixelCloudDetector:
         if dilation_size > 0:
             self.dilation_filter = disk(dilation_size)
 
-    def _load_classifier(self, filename):
+    @property
+    def classifier(self):
         """
-        Loads the classifier.
+        Provides a classifier object. It also loads it if it hasn't been loaded yet. This way the classifier is loaded
+        only when it is actually required.
         """
-        self.classifier = PixelClassifier(joblib.load(filename))
+        if self._classifier is None:
+            self._classifier = PixelClassifier(Booster(model_file=self.model_filename))
+
+        return self._classifier
 
     def get_cloud_probability_maps(self, X):
         """
@@ -148,7 +151,6 @@ class S2PixelCloudDetector:
         if self.dilation_size:
             cloud_masks = np.asarray([dilation(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks],
                                      dtype=np.int8)
-
         return cloud_masks
 
 
