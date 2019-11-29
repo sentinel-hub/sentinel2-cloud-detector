@@ -66,13 +66,13 @@ class PixelClassifier:
         pixels = X.reshape(new_shape)
         return pixels
 
-    def image_predict(self, X):
+    def image_predict(self, X, **kwargs):
         """
         Predicts class labels for the entire image.
 
         :param X: Array of images to be classified.
         :type X: numpy array, shape = [n_images, n_pixels_y, n_pixels_x, n_bands]
-
+        :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: raster classification map
         :rtype: numpy array, [n_samples, n_pixels_y, n_pixels_x]
         """
@@ -82,25 +82,26 @@ class PixelClassifier:
             raise NotImplementedError('An instance of lightgbm.Booster can only return prediction probabilities, '
                                       'use PixelClassifier.image_predict_proba instead')
 
-        predictions = self.classifier.predict(pixels)
+        predictions = self.classifier.predict(pixels, **kwargs)
 
         return predictions.reshape(X.shape[0], X.shape[1], X.shape[2])
 
-    def image_predict_proba(self, X):
+    def image_predict_proba(self, X, **kwargs):
         """
         Predicts class probabilities for the entire image.
 
         :param X: Array of images to be classified.
         :type X: numpy array, shape = [n_images, n_pixels_y, n_pixels_x, n_bands]
+        :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: classification probability map
         :rtype: numpy array, [n_samples, n_pixels_y, n_pixels_x]
         """
         pixels = self.extract_pixels(X)
 
         if isinstance(self.classifier, Booster):
-            probabilities = self.classifier.predict(pixels)
+            probabilities = self.classifier.predict(pixels, **kwargs)
             probabilities = np.vstack((1. - probabilities, probabilities)).transpose()
         else:
-            probabilities = self.classifier.predict_proba(pixels)
+            probabilities = self.classifier.predict_proba(pixels, **kwargs)
 
         return probabilities.reshape(X.shape[0], X.shape[1], X.shape[2], probabilities.shape[1])

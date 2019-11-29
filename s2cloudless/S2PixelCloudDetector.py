@@ -86,7 +86,7 @@ class S2PixelCloudDetector:
 
         return self._classifier
 
-    def get_cloud_probability_maps(self, X):
+    def get_cloud_probability_maps(self, X, **kwargs):
         """
         Runs the cloud detection on the input images (dimension n_images x n x m x 10
         or n_images x n x m x 13) and returns an array of cloud probability maps (dimension
@@ -96,6 +96,7 @@ class S2PixelCloudDetector:
         :param X: input Sentinel-2 image obtained with Sentinel-Hub's WMS/WCS request
                   (see https://github.com/sentinel-hub/sentinelhub-py)
         :type X: numpy array (shape n_images x n x m x 10 or n x m x 13)
+        :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: cloud probability map
         :rtype: numpy array (shape n_images x n x m)
         """
@@ -108,9 +109,9 @@ class S2PixelCloudDetector:
         if self.all_bands:
             X = X[..., self.BAND_IDXS]
 
-        return self.classifier.image_predict_proba(X)[..., 1]
+        return self.classifier.image_predict_proba(X, **kwargs)[..., 1]
 
-    def get_cloud_masks(self, X):
+    def get_cloud_masks(self, X, **kwargs):
         """
         Runs the cloud detection on the input images (dimension n_images x n x m x 10
         or n_images x n x m x 13) and returns the raster cloud mask (dimension n_images x n x m).
@@ -120,11 +121,12 @@ class S2PixelCloudDetector:
         :param X: input Sentinel-2 image obtained with Sentinel-Hub's WMS/WCS request
                   (see https://github.com/sentinel-hub/sentinelhub-py)
         :type X: numpy array (shape n_images x n x m x 10 or n x m x 13)
+        :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: raster cloud mask
         :rtype: numpy array (shape n_images x n x m)
         """
 
-        cloud_probs = self.get_cloud_probability_maps(X)
+        cloud_probs = self.get_cloud_probability_maps(X, **kwargs)
 
         return self.get_mask_from_prob(cloud_probs)
 
