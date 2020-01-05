@@ -1,0 +1,10 @@
+[pytest]
+addopts = --cov --cov-report=term
+testpaths = s2cloudless
+
+[run]
+source = s2cloudless
+
+[report]
+omit =
+    models/*
