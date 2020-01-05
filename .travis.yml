@@ -25,7 +25,7 @@ install:
 
 script:
 - pylint s2cloudless/*.py
-- radon cc sentinelhub/*.py -a -nb
+- radon cc s2cloudless/*.py -a -nb
 - pytest --cov
 
 after_success:
