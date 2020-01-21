@@ -26,15 +26,15 @@ $ python setup.py build
 $ python setup.py install
 ```
 
-One of `s2cloudless` dependecies is `lightgbm` package. If having problems during installation please
-check [LightGBM installation guide](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html).
+One of `s2cloudless` dependencies is `lightgbm` package. If having problems during installation, please
+check the [LightGBM installation guide](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html).
 
-Before installing `s2cloudless` on **Windows** it is recommended to install package `shapely` from
+Before installing `s2cloudless` on **Windows**, it is recommended to install package `shapely` from
 [Unofficial Windows wheels repository](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
 
 ## Input: Sentinel-2 scenes
 
-The input to cloud detector are Sentinel-2 images. In particular, the cloud detector requires the following 10
+The inputs to the cloud detector are Sentinel-2 images. In particular, the cloud detector requires the following 10
 Sentinel-2 band reflectances: B01, B02, B04, B05, B08, B8A, B09, B10, B11, B12, which are obtained from raw
 reflectance value in the following way: `B_i/10000`.
 
