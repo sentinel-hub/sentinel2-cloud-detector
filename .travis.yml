@@ -24,7 +24,12 @@ install:
 script:
 - pylint s2cloudless/*.py
 - radon cc s2cloudless/*.py -a -nb
-- pytest --cov
+- >
+  if [[ $TRAVIS_PULL_REQUEST == true ]] ;
+  then pytest --cov \
+    --ignore test_cloud_detector.py ;
+  else pytest --cov ;
+  fi
 
 after_success:
 - if [ $TRAVIS_PYTHON_VERSION == '3.7' ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then codecov; fi
