@@ -20,6 +20,34 @@ MODEL_FILENAME = 'pixel_s2_cloud_detector_lightGBM_v0.1.txt'
 MODEL_EVALSCRIPT = 'return [B01,B02,B04,B05,B08,B8A,B09,B10,B11,B12]'
 S2_BANDS_EVALSCRIPT = 'return [B01,B02,B03,B04,B05,B06,B07,B08,B8A,B09,B10,B11,B12]'
 
+MODEL_EVALSCRIPT_V3 = """
+    //VERSION=3
+    function setup() {
+        return {
+            input: [{
+                bands: ["B01", "B02", "B04", "B05", "B08","B8A", "B09", "B10", "B11", "B12", "dataMask"],
+            }],
+            output: {
+                bands: 11,
+                sampleType: "FLOAT32"
+            }
+        };
+    }
+
+    function evaluatePixel(sample) {
+        return [sample.B01,
+                sample.B02,
+                sample.B04,
+                sample.B05,
+                sample.B08,
+                sample.B8A,
+                sample.B09,
+                sample.B10,
+                sample.B11,
+                sample.B12,
+				sample.dataMask];
+    }
+"""
 
 class S2PixelCloudDetector:
     """
@@ -207,7 +235,7 @@ class CloudMaskRequest:
         self.ogc_request.custom_url_params.update({
             CustomUrlParam.SHOWLOGO: False,
             CustomUrlParam.TRANSPARENT: True,
-            CustomUrlParam.EVALSCRIPT: S2_BANDS_EVALSCRIPT if self.all_bands else MODEL_EVALSCRIPT,
+            CustomUrlParam.EVALSCRIPT: S2_BANDS_EVALSCRIPT if self.all_bands else MODEL_EVALSCRIPT_V3,
             CustomUrlParam.ATMFILTER: 'NONE'
         })
         self.ogc_request.create_request(reset_wfs_iterator=False)
