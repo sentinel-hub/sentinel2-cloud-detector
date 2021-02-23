@@ -211,13 +211,15 @@ class CloudMaskRequest:
     # pylint: disable=invalid-unary-operand-type
     def __init__(self, ogc_request, *, threshold=0.4, average_over=4, dilation_size=2, model_filename=None,
                  all_bands=False):
-        self.threshold = threshold
-        self.average_over = average_over
-        self.dilation_size = dilation_size
         self.all_bands = all_bands
 
-        self.cloud_detector = S2PixelCloudDetector(threshold=threshold, average_over=average_over, all_bands=all_bands,
-                                                   dilation_size=dilation_size, model_filename=model_filename)
+        self.cloud_detector = S2PixelCloudDetector(
+            threshold=threshold,
+            average_over=average_over,
+            all_bands=all_bands,
+            dilation_size=dilation_size,
+            model_filename=model_filename
+        )
 
         self.ogc_request = copy.deepcopy(ogc_request)
         self._prepare_ogc_request_params()
@@ -229,14 +231,12 @@ class CloudMaskRequest:
     def _prepare_ogc_request_params(self):
         """ Method makes sure that correct parameters will be used for download of S-2 bands.
         """
-        self.ogc_request.image_format = MimeType.TIFF_d32f
+        self.ogc_request.image_format = MimeType.TIFF
         if self.ogc_request.custom_url_params is None:
             self.ogc_request.custom_url_params = {}
         self.ogc_request.custom_url_params.update({
             CustomUrlParam.SHOWLOGO: False,
-            CustomUrlParam.TRANSPARENT: True,
-            CustomUrlParam.EVALSCRIPT: S2_BANDS_EVALSCRIPT if self.all_bands else MODEL_EVALSCRIPT_V3,
-            CustomUrlParam.ATMFILTER: 'NONE'
+            CustomUrlParam.EVALSCRIPT: S2_BANDS_EVALSCRIPT if self.all_bands else MODEL_EVALSCRIPT_V3
         })
         self.ogc_request.create_request(reset_wfs_iterator=False)
 

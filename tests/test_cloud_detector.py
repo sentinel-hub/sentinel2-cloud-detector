@@ -37,9 +37,7 @@ class TestCloudMaskRequest(TestS2Cloudless):
         bbox2 = BBox([46.16, -16.15, 46.51, -15.58], crs=CRS.WGS84)  # From sentinelhub-py examples
         cls.custom_url_params = {
             CustomUrlParam.SHOWLOGO: True,
-            CustomUrlParam.TRANSPARENT: False,
-            CustomUrlParam.EVALSCRIPT: 'return [B01]',
-            CustomUrlParam.ATMFILTER: 'DOS1'
+            CustomUrlParam.EVALSCRIPT: 'return [B01]'
         }
 
         cls.wms_request = WmsRequest(layer='S2-DOS1', bbox=bbox1, time=('2017-12-01', '2017-12-31'), width=60,
