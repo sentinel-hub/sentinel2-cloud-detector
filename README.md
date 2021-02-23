@@ -7,6 +7,8 @@
 
 # Sentinel Hub's cloud detector for Sentinel-2 imagery
 
+**NOTE: s2cloudless masks are now available as a precomputed layer within Sentinel Hub. Check the [announcement blog post](https://medium.com/sentinel-hub/cloud-masks-at-your-service-6e5b2cb2ce8a) and [technical documentation](https://docs.sentinel-hub.com/api/latest/#/API/data_access?id=cloud-masks-and-cloud-probabilities).**
+
 The **s2cloudless** Python package provides automated cloud detection in
 Sentinel-2 imagery. The classification is based on a *single-scene pixel-based cloud detector*
 developed by Sentinel Hub's research team and is described in more details
