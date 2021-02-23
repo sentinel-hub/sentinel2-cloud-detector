@@ -23,7 +23,6 @@ install:
 
 script:
 - pylint s2cloudless/*.py
-- radon cc s2cloudless/*.py -a -nb
 - >
   if [[ $TRAVIS_PULL_REQUEST == true ]] ;
   then pytest --cov \

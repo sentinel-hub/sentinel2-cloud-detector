@@ -3,4 +3,3 @@ pytest-cov
 codecov
 pylint
 twine
-radon
