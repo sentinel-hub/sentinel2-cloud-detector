@@ -40,17 +40,17 @@ class TestCloudMaskRequest(TestS2Cloudless):
             CustomUrlParam.EVALSCRIPT: 'return [B01]'
         }
 
-        cls.wms_request = WmsRequest(layer='S2-DOS1', bbox=bbox1, time=('2017-12-01', '2017-12-31'), width=60,
+        cls.wms_request = WmsRequest(layer='TRUE-COLOR-S2-L1C', bbox=bbox1, time=('2017-12-01', '2017-12-31'), width=60,
                                      height=None, image_format=MimeType.TIFF, custom_url_params=cls.custom_url_params,
                                      instance_id=cls.CONFIG.instance_id)
-        cls.wcs_request = WcsRequest(layer='S2-ATMCOR', bbox=bbox2, time='2016-07-18T07:14:04',
+        cls.wcs_request = WcsRequest(layer='TRUE-COLOR-S2-L1C', bbox=bbox2, time='2016-07-18T07:14:04',
                                      resx='100m', resy='100m', image_format=MimeType.PNG, data_folder='.')
 
         cls.test_cases = [
             TestCaseContainer('WMS', CloudMaskRequest(cls.wms_request, threshold=0.6, average_over=2, dilation_size=5),
                               clm_min=0, clm_max=1, clm_mean=0.343827, clm_median=0, clp_min=0.00011, clp_max=0.99999,
                               clp_mean=0.23959, clp_median=0.01897, mask_shape=(7, 81, 60)),
-            TestCaseContainer('WCS, partial no data', CloudMaskRequest(cls.wcs_request, all_bands=True), clm_min=0,
+            TestCaseContainer('WCS, partial no data', CloudMaskRequest(cls.wcs_request, all_bands=False), clm_min=0,
                               clm_max=1, clm_mean=0.04468, clm_median=0, clp_min=-50.0, clp_max=0.999635,
                               clp_mean=-7.5472468, clp_median=0.011568, mask_shape=(1, 634, 374))
         ]
