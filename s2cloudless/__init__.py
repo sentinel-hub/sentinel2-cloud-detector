@@ -1,9 +1,8 @@
 """
 This module lists all externally useful classes and functions
 """
-
-from .S2PixelCloudDetector import S2PixelCloudDetector
-from .PixelClassifier import PixelClassifier
+from .pixel_classifier import PixelClassifier
+from .cloud_detector import S2PixelCloudDetector
 from .sentinelhub_masking import CloudMaskRequest, MODEL_EVALSCRIPT, S2_BANDS_EVALSCRIPT
 
 

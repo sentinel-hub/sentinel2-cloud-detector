@@ -8,7 +8,7 @@ from scipy.ndimage.filters import convolve
 from skimage.morphology import disk, dilation
 from lightgbm import Booster
 
-from .PixelClassifier import PixelClassifier
+from .pixel_classifier import PixelClassifier
 
 
 MODEL_FILENAME = 'pixel_s2_cloud_detector_lightGBM_v0.1.txt'

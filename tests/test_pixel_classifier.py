@@ -1,5 +1,5 @@
 """
-Tests for PixelClassifier.py module
+Tests for pixel_classifier.py module
 """
 import os
 
@@ -9,7 +9,7 @@ from lightgbm import Booster
 
 import s2cloudless
 from s2cloudless import PixelClassifier
-from s2cloudless.S2PixelCloudDetector import MODEL_FILENAME
+from s2cloudless.cloud_detector import MODEL_FILENAME
 
 
 @pytest.fixture(name='booster')

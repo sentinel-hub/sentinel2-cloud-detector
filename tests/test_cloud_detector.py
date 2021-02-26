@@ -1,5 +1,5 @@
 """
-Tests for S2PixelCloudDetector.py module
+Tests for cloud_detector.py module
 """
 import os
 
