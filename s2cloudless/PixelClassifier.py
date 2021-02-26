@@ -16,14 +16,13 @@ class PixelClassifier:
 
     The classifier can be of a type that is explicitly supported (e.g. lightgbm.Booster) or of any type as long as
     it has the following two methods implemented:
-        - predict(X)
-        - predict_proba(X)
+        - predict(data)
+        - predict_proba(data)
 
     This is true for all classifiers that follow scikit-learn's API.
     The APIs of scikit-learn's objects is described
     at: http://scikit-learn.org/stable/developers/contributing.html#apis-of-scikit-learn-objects.
     """
-    # pylint: disable=invalid-name
     def __init__(self, classifier):
         """
         :param classifier: An instance of trained classifier that will be executed over an entire image
@@ -49,34 +48,34 @@ class PixelClassifier:
             raise ValueError('Classifier does not have a predict_proba method!')
 
     @staticmethod
-    def extract_pixels(X):
-        """ Extracts pixels from array X
+    def extract_pixels(data):
+        """ Extracts pixels from data array
 
-        :param X: Array of images to be classified.
-        :type X: numpy array, shape = [n_images, n_pixels_y, n_pixels_x, n_bands]
+        :param data: Array of images to be classified.
+        :type data: numpy array, shape = [n_images, n_pixels_y, n_pixels_x, n_bands]
         :return: Reshaped 2D array
         :rtype: numpy array, [n_samples*n_pixels_y*n_pixels_x,n_bands]
         :raises: ValueError is input array has wrong dimensions
         """
-        if len(X.shape) != 4:
+        if len(data.shape) != 4:
             raise ValueError('Array of input images has to be a 4-dimensional array of shape'
                              '[n_images, n_pixels_y, n_pixels_x, n_bands]')
 
-        new_shape = X.shape[0] * X.shape[1] * X.shape[2], X.shape[3]
-        pixels = X.reshape(new_shape)
+        new_shape = data.shape[0] * data.shape[1] * data.shape[2], data.shape[3]
+        pixels = data.reshape(new_shape)
         return pixels
 
-    def image_predict(self, X, **kwargs):
+    def image_predict(self, data, **kwargs):
         """
         Predicts class labels for the entire image.
 
-        :param X: Array of images to be classified.
-        :type X: numpy array, shape = [n_images, n_pixels_y, n_pixels_x, n_bands]
+        :param data: Array of images to be classified.
+        :type data: numpy array, shape = [n_images, n_pixels_y, n_pixels_x, n_bands]
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: raster classification map
         :rtype: numpy array, [n_samples, n_pixels_y, n_pixels_x]
         """
-        pixels = self.extract_pixels(X)
+        pixels = self.extract_pixels(data)
 
         if isinstance(self.classifier, Booster):
             raise NotImplementedError('An instance of lightgbm.Booster can only return prediction probabilities, '
@@ -84,19 +83,19 @@ class PixelClassifier:
 
         predictions = self.classifier.predict(pixels, **kwargs)
 
-        return predictions.reshape(X.shape[0], X.shape[1], X.shape[2])
+        return predictions.reshape(data.shape[0], data.shape[1], data.shape[2])
 
-    def image_predict_proba(self, X, **kwargs):
+    def image_predict_proba(self, data, **kwargs):
         """
         Predicts class probabilities for the entire image.
 
-        :param X: Array of images to be classified.
-        :type X: numpy array, shape = [n_images, n_pixels_y, n_pixels_x, n_bands]
+        :param data: Array of images to be classified.
+        :type data: numpy array, shape = [n_images, n_pixels_y, n_pixels_x, n_bands]
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: classification probability map
         :rtype: numpy array, [n_samples, n_pixels_y, n_pixels_x]
         """
-        pixels = self.extract_pixels(X)
+        pixels = self.extract_pixels(data)
 
         if isinstance(self.classifier, Booster):
             probabilities = self.classifier.predict(pixels, **kwargs)
@@ -104,4 +103,4 @@ class PixelClassifier:
         else:
             probabilities = self.classifier.predict_proba(pixels, **kwargs)
 
-        return probabilities.reshape(X.shape[0], X.shape[1], X.shape[2], probabilities.shape[1])
+        return probabilities.reshape(data.shape[0], data.shape[1], data.shape[2], probabilities.shape[1])

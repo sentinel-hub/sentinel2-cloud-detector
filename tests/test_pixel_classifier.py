@@ -1,35 +1,55 @@
-import unittest
-import logging
+"""
+Tests for PixelClassifier.py module
+"""
+import os
 
+import pytest
 import numpy as np
+from lightgbm import Booster
 
-from s2cloudless.PixelClassifier import PixelClassifier
-from s2cloudless.S2PixelCloudDetector import S2PixelCloudDetector
-
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)-15s %(module)s:%(lineno)d [%(levelname)s] %(funcName)s  %(message)s')
-
-
-class TestPixelClassifier(unittest.TestCase):
-
-    def test_check_classifier(self):
-        self.assertRaises(ValueError, PixelClassifier, "test")
-
-    def test_extract_pixels(self):
-        w, x, y, z = np.ones(5), np.ones((5, 5)), np.ones((5, 5, 5)), np.ones((5, 5, 5, 5))
-        cloud_detector = S2PixelCloudDetector()
-        self.assertRaisesRegex(ValueError,
-                               "Array of input images has to be a 4-dimensional array of shape",
-                               cloud_detector.classifier.extract_pixels, w)
-        self.assertRaisesRegex(ValueError,
-                               "Array of input images has to be a 4-dimensional array of shape",
-                               cloud_detector.classifier.extract_pixels, x)
-        self.assertRaisesRegex(ValueError,
-                               "Array of input images has to be a 4-dimensional array of shape",
-                               cloud_detector.classifier.extract_pixels, y)
-        self.assertTrue(len(cloud_detector.classifier.extract_pixels(z).shape) == 2)
-        self.assertTrue(cloud_detector.classifier.extract_pixels(z).shape[0] == 5*5*5)
+import s2cloudless
+from s2cloudless import PixelClassifier
+from s2cloudless.S2PixelCloudDetector import MODEL_FILENAME
 
 
-if __name__ == '__main__':
-    unittest.main()
+@pytest.fixture(name='booster')
+def booster_fixture():
+    package_path = os.path.dirname(s2cloudless.__file__)
+    model_path = os.path.join(package_path, 'models', MODEL_FILENAME)
+    return Booster(model_file=model_path)
+
+
+@pytest.mark.parametrize('input_array,expected_result',[
+    (np.ones(5), None),
+    (np.ones((5, 5)), None),
+    (np.ones((5, 5, 5)), None),
+    (np.ones((5, 5, 5, 5)), np.ones((5 * 5 * 5, 5)))
+])
+def test_extract_pixels(input_array, expected_result, booster):
+    classifier = PixelClassifier(booster)
+
+    if expected_result is None:
+        with pytest.raises(ValueError):
+            classifier.extract_pixels(input_array)
+    else:
+        result = classifier.extract_pixels(input_array)
+        assert np.array_equal(result, expected_result)
+
+
+def test_image_predict(booster):
+    classifier = PixelClassifier(booster)
+    array = np.ones((5, 5, 5, 5))
+
+    with pytest.raises(NotImplementedError):
+        classifier.image_predict(array)
+
+
+def test_image_predict_proba(booster):
+    classifier = PixelClassifier(booster)
+    array = np.random.rand(5, 5, 5, 10)
+
+    result = classifier.image_predict_proba(array)
+
+    assert result.shape == (5, 5, 5, 2)
+    assert result.dtype == np.float64
+    assert np.allclose(np.sum(result, axis=-1), np.ones((5, 5, 5)), atol=1e-12)
