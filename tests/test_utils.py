@@ -6,12 +6,8 @@ import pytest
 from s2cloudless import get_s2_evalscript
 
 
-@pytest.mark.parametrize('all_bands,reflectance', [
-    (True, True),
-    (True, False),
-    (False, True),
-    (False, False)
-])
+@pytest.mark.parametrize('all_bands', [True, False])
+@pytest.mark.parametrize('reflectance', [True, False])
 def test_get_s2_evalscript(all_bands, reflectance):
     evalscript = get_s2_evalscript(all_bands=all_bands, reflectance=reflectance)
 
