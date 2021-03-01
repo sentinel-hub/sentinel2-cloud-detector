@@ -95,8 +95,8 @@ class S2PixelCloudDetector:
         band_num = data.shape[-1]
         exp_bands = 13 if self.all_bands else len(MODEL_BAND_IDS)
         if band_num != exp_bands:
-            raise ValueError("Parameter 'all_bands' is set to {}. Therefore expected band data with {} bands, "
-                             "got {} bands".format(self.all_bands, exp_bands, band_num))
+            raise ValueError(f"Parameter 'all_bands' is set to {self.all_bands}. Therefore expected band data with "
+                             f"{exp_bands} bands, got {band_num} bands")
 
         if self.all_bands:
             data = data[..., MODEL_BAND_IDS]
