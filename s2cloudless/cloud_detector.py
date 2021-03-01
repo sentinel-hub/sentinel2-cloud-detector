@@ -92,6 +92,10 @@ class S2PixelCloudDetector:
         :return: cloud probability map
         :rtype: numpy array (shape n_images x n x m)
         """
+        is_single_temporal = data.ndim == 3
+        if is_single_temporal:
+            data = data[np.newaxis, ...]
+
         band_num = data.shape[-1]
         exp_bands = 13 if self.all_bands else len(MODEL_BAND_IDS)
         if band_num != exp_bands:
@@ -101,7 +105,11 @@ class S2PixelCloudDetector:
         if self.all_bands:
             data = data[..., MODEL_BAND_IDS]
 
-        return self.classifier.image_predict_proba(data, **kwargs)[..., 1]
+        proba = self.classifier.image_predict_proba(data, **kwargs)[..., 1]
+
+        if is_single_temporal:
+            return proba[0]
+        return proba
 
     def get_cloud_masks(self, data, **kwargs):
         """
@@ -117,10 +125,16 @@ class S2PixelCloudDetector:
         :return: raster cloud mask
         :rtype: numpy array (shape n_images x n x m)
         """
+        is_single_temporal = data.ndim == 3
+        if is_single_temporal:
+            data = data[np.newaxis, ...]
 
         cloud_probs = self.get_cloud_probability_maps(data, **kwargs)
+        cloud_masks = self.get_mask_from_prob(cloud_probs)
 
-        return self.get_mask_from_prob(cloud_probs)
+        if is_single_temporal:
+            return cloud_masks[0]
+        return cloud_masks
 
     def get_mask_from_prob(self, cloud_probs, threshold=None):
         """
