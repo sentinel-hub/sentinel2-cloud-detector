@@ -9,6 +9,7 @@ from skimage.morphology import disk, dilation
 from lightgbm import Booster
 
 from .pixel_classifier import PixelClassifier
+from .utils import MODEL_BAND_IDS
 
 
 MODEL_FILENAME = 'pixel_s2_cloud_detector_lightGBM_v0.1.txt'
@@ -45,7 +46,6 @@ class S2PixelCloudDetector:
                            package is loaded.
     :type model_filename: str or None
     """
-    BAND_IDS = [0, 1, 3, 4, 7, 8, 9, 10, 11, 12]
 
     def __init__(self, threshold=0.4, all_bands=False, average_over=1, dilation_size=1, model_filename=None):
 
@@ -93,13 +93,13 @@ class S2PixelCloudDetector:
         :rtype: numpy array (shape n_images x n x m)
         """
         band_num = data.shape[-1]
-        exp_bands = 13 if self.all_bands else len(self.BAND_IDS)
+        exp_bands = 13 if self.all_bands else len(MODEL_BAND_IDS)
         if band_num != exp_bands:
             raise ValueError("Parameter 'all_bands' is set to {}. Therefore expected band data with {} bands, "
                              "got {} bands".format(self.all_bands, exp_bands, band_num))
 
         if self.all_bands:
-            data = data[..., self.BAND_IDS]
+            data = data[..., MODEL_BAND_IDS]
 
         return self.classifier.image_predict_proba(data, **kwargs)[..., 1]
 
