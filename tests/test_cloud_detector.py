@@ -6,7 +6,7 @@ import os
 import pytest
 import numpy as np
 
-from s2cloudless import S2PixelCloudDetector, CloudMaskRequest
+from s2cloudless import S2PixelCloudDetector
 
 
 def test_pixel_cloud_detector():
