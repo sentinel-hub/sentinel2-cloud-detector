@@ -202,6 +202,7 @@ class CloudMaskRequest:
         :return: Probability map of shape `(times, height, width)` and `dtype=numpy.float64`
         :rtype: numpy.ndarray
         """
+        # pylint: disable=invalid-unary-operand-type
         if self.probability_masks is None:
             self.get_data()
             self.probability_masks = self.cloud_detector.get_cloud_probability_maps(self.bands)
@@ -220,6 +221,7 @@ class CloudMaskRequest:
         :return: Binary cloud masks of shape `(times, height, width)` and `dtype=numpy.int8`
         :rtype: numpy.ndarray
         """
+        # pylint: disable=invalid-unary-operand-type
         self.get_probability_masks()
 
         cloud_masks = self.cloud_detector.get_mask_from_prob(self.probability_masks, threshold)
