@@ -10,6 +10,11 @@ from sentinelhub import SentinelHubRequest, SentinelHubCatalog, SentinelHubDownl
 from .utils import get_s2_evalscript
 
 
+class NoDataAvailableException(RuntimeError):
+    """ Raise in case there is no Sentinel-2 data available for give request
+    """
+
+
 class CloudMaskRequest:
     """ Obtains data from Sentinel Hub service and calculates cloud masks and probabilities for all dates in a time
     range
@@ -113,6 +118,9 @@ class CloudMaskRequest:
                 self.timestamps = self._get_timestamps_from_catalog(time_interval)
 
             self.timestamps = filter_times(self.timestamps, self.time_difference)
+
+        if not self.timestamps:
+            raise NoDataAvailableException('There are no Sentinel-2 images available for given parameters')
 
         return self.timestamps
 

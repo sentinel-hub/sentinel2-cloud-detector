@@ -8,7 +8,7 @@ import pytest
 import numpy as np
 from sentinelhub import SHConfig, BBox, CRS
 
-from s2cloudless import S2PixelCloudDetector, CloudMaskRequest
+from s2cloudless import S2PixelCloudDetector, CloudMaskRequest, NoDataAvailableException
 
 
 BBOX1 = BBox([-90.9216499, 14.4190528, -90.8186531, 14.5520163], crs=CRS.WGS84)
@@ -35,8 +35,12 @@ def config_fixture():
     (dict(cloud_detector=S2PixelCloudDetector(), bbox=BBOX2, time='2016-07-18T07:14:04', resolution=(100, 100),
           time_difference=dt.timedelta(hours=1)),
      dict(clm_min=0, clm_max=1, clm_mean=0.05164, clm_median=0, clp_min=0.00011, clp_max=0.99966, clp_mean=0.055365,
-          clp_median=0.0141596, mask_shape=(1, 628, 379)))
-])
+          clp_median=0.0141596, mask_shape=(1, 628, 379))),
+    (dict(cloud_detector=S2PixelCloudDetector(), bbox=BBOX1, time=('2021-01-01', '2021-01-10'), size=(250, 250),
+          time_difference=dt.timedelta(hours=1), maxcc=0.1, downsampling='BICUBIC'),
+     dict(clm_min=0, clm_max=1, clm_mean=0.87632, clm_median=1, clp_min=0.00352, clp_max=0.99966, clp_mean=0.789795,
+          clp_median=0.953203, mask_shape=(1, 250, 250))),
+], ids=['basic', 'resolution', 'maxcc,downsampling'])
 def test_cloud_mask_request(input_params, stats, config, subtests):
     """ Integration tests for CloudMasKRequest class that interacts with Sentinel Hub service
     """
@@ -68,6 +72,8 @@ def test_cloud_mask_request(input_params, stats, config, subtests):
 
 def _test_numpy_data(subtests, data, *, exp_shape=None, exp_dtype=None, exp_min=None, exp_max=None, exp_mean=None,
                      exp_median=None, delta=None):
+    """ Tests stats of a numpy array
+    """
     if delta is None:
         delta = 1e-1 if np.issubdtype(data.dtype, np.integer) else 1e-4
 
@@ -87,3 +93,12 @@ def _test_numpy_data(subtests, data, *, exp_shape=None, exp_dtype=None, exp_min=
         stat_val = stat_func(data)
         with subtests.test(msg=stat_name):
             assert abs(stat_val - exp_stat) < delta, f'Expected {stat_name} {exp_stat}, got {stat_val}'
+
+
+def test_no_data_available_request(config):
+    """ Tests an exception raised by CloudMaskRequest
+    """
+    cloud_detector = S2PixelCloudDetector()
+    with pytest.raises(NoDataAvailableException):
+        CloudMaskRequest(cloud_detector, bbox=BBOX1, time=('2021-01-01', '2021-01-10'), size=(250, 250), maxcc=0.01,
+                         config=config)
