@@ -47,8 +47,9 @@ def test_cloud_mask_request(input_params, stats, config, subtests):
                      exp_max=stats['clm_max'], exp_mean=stats['clm_mean'], exp_median=stats['clm_median'], delta=1e-4)
 
     prob_masks = request.get_probability_masks(non_valid_value=-50)
-    _test_numpy_data(subtests, prob_masks, exp_shape=stats['mask_shape'], exp_dtype=np.float64, exp_min=stats['clp_min'],
-                     exp_max=stats['clp_max'], exp_mean=stats['clp_mean'], exp_median=stats['clp_median'], delta=1e-4)
+    _test_numpy_data(subtests, prob_masks, exp_shape=stats['mask_shape'], exp_dtype=np.float64,
+                     exp_min=stats['clp_min'], exp_max=stats['clp_max'], exp_mean=stats['clp_mean'],
+                     exp_median=stats['clp_median'], delta=1e-4)
 
     timestamps = request.get_timestamps()
     assert isinstance(timestamps, list)
