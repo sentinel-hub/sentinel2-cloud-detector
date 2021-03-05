@@ -5,7 +5,6 @@ notifications:
   email: false
 
 python:
-- "3.5"
 - "3.6"
 - "3.7"
 - "3.8"
@@ -23,7 +22,6 @@ install:
 
 script:
 - pylint s2cloudless/*.py
-- radon cc s2cloudless/*.py -a -nb
 - >
   if [[ $TRAVIS_PULL_REQUEST == true ]] ;
   then pytest --cov \
