@@ -16,7 +16,7 @@ developed by Sentinel Hub's research team and is described in more details
 
 ## Installation
 
-The package requires a Python version >= 3.5. The package is available on
+The package requires a Python version >= 3.6. The package is available on
 the PyPI package manager and can be installed with
 
 ```
@@ -25,8 +25,7 @@ $ pip install s2cloudless
 
 To install the package manually, clone the repository and
 ```
-$ python setup.py build
-$ python setup.py install
+$ pip install .
 ```
 
 One of `s2cloudless` dependencies is `lightgbm` package. If having problems during installation, please
@@ -41,8 +40,9 @@ The inputs to the cloud detector are Sentinel-2 images. In particular, the cloud
 Sentinel-2 band reflectances: B01, B02, B04, B05, B08, B8A, B09, B10, B11, B12, which are obtained from raw
 reflectance value in the following way: `B_i/10000`.
 
-You don't need to worry about any of this, if you're doing classification of scenes obtained using Sentinel Hub's
-WMS or WCS services (i.e. using ours Python library [sentinelhub-py](https://github.com/sentinel-hub/sentinelhub-py)).
+You don't need to worry about any of this, if you're doing classification of scenes obtained using [Sentinel Hub
+Process API](https://docs.sentinel-hub.com/api/latest/api/process/). The API is supported in Python with 
+[sentinelhub-py](https://github.com/sentinel-hub/sentinelhub-py)) package.
 
 ## Examples
 
