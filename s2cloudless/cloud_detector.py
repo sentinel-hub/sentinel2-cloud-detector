@@ -85,8 +85,7 @@ class S2PixelCloudDetector:
         n_images x n x m). Pixel values close to 0 indicate clear-sky-like pixels, while
         values close to 1 indicate pixels covered with clouds.
 
-        :param data: input Sentinel-2 image obtained with Sentinel-Hub's WMS/WCS request
-                  (see https://github.com/sentinel-hub/sentinelhub-py)
+        :param data: A stack of Sentinel-2 images with all required bands in the correct order
         :type data: numpy array (shape n_images x n x m x 10 or n x m x 13)
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: cloud probability map
@@ -118,8 +117,7 @@ class S2PixelCloudDetector:
         Pixel values equal to 0 indicate pixels classified as clear-sky, while values
         equal to 1 indicate pixels classified as clouds.
 
-        :param data: input Sentinel-2 image obtained with Sentinel-Hub's WMS/WCS request
-                  (see https://github.com/sentinel-hub/sentinelhub-py)
+        :param data: A stack of Sentinel-2 images with all required bands in the correct order
         :type data: numpy array (shape n_images x n x m x 10 or n x m x 13)
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: raster cloud mask

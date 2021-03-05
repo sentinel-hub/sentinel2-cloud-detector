@@ -74,9 +74,6 @@ def _test_numpy_data(subtests, data, *, exp_shape=None, exp_dtype=None, exp_min=
                      exp_median=None, delta=None):
     """ Tests stats of a numpy array
     """
-    if delta is None:
-        delta = 1e-1 if np.issubdtype(data.dtype, np.integer) else 1e-4
-
     for exp_stat, stat_val, stat_name in [(exp_shape, data.shape, 'shape'), (exp_dtype, data.dtype, 'dtype')]:
         if exp_stat is None:
             continue

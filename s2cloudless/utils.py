@@ -34,7 +34,7 @@ function updateOutputMetadata(scenes, inputMetadata, outputMetadata) {
 """
 
 
-def get_s2_evalscript(all_bands=True, reflectance=True):
+def get_s2_evalscript(all_bands=False, reflectance=False):
     """ Provides an evalscript to download Sentinel-2 data
 
     :param all_bands: If `True` the evalscript will use all bands. Otherwise it will use only bands needed for cloud
@@ -52,8 +52,8 @@ def get_s2_evalscript(all_bands=True, reflectance=True):
     bands = bands + ['dataMask']
 
     return DATA_EVALSCRIPT_TEMPLATE.format(
-        bands=', '.join((f'"{band}"' for band in bands)),
-        sample_bands=', '.join((f'sample.{band}' for band in bands)),
+        bands=', '.join(f'"{band}"' for band in bands),
+        sample_bands=', '.join(f'sample.{band}' for band in bands),
         band_number=len(bands),
         input_units='reflectance' if reflectance else 'DN',
         output_sample_type='FLOAT32' if reflectance else 'UINT16',
