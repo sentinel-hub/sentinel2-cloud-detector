@@ -8,4 +8,4 @@ from .utils import get_s2_evalscript
 from .sentinelhub_masking import CloudMaskRequest, NoDataAvailableException
 
 
-__version__ = '1.4.0'
+__version__ = '1.5.0'
