@@ -42,7 +42,7 @@ reflectance value in the following way: `B_i/10000`.
 
 You don't need to worry about any of this, if you're doing classification of scenes obtained using [Sentinel Hub
 Process API](https://docs.sentinel-hub.com/api/latest/api/process/). The API is supported in Python with 
-[sentinelhub-py](https://github.com/sentinel-hub/sentinelhub-py)) package.
+[sentinelhub-py](https://github.com/sentinel-hub/sentinelhub-py) package.
 
 ## Examples
 
