@@ -2,4 +2,4 @@ numpy>=1.13.3
 scipy>=0.19.1
 scikit-image>=0.13.0
 lightgbm>=2.0.11
-sentinelhub>=2.4.6
+sentinelhub>=3.2.0
