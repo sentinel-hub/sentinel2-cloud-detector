@@ -1,4 +1,7 @@
+os: linux
+arch: arm64
 dist: bionic
+sudo: required
 language: python
 
 notifications:
@@ -8,12 +11,13 @@ python:
 - "3.6"
 - "3.7"
 - "3.8"
+- "3.9"
 
 before_install:
 - sudo apt-get install -y libopenjp2-7
 
 install:
-- if [ $TRAVIS_PYTHON_VERSION == '3.7' ]; then
+- if [ $TRAVIS_PYTHON_VERSION == '3.8' ]; then
     pip install -e . --upgrade ;
   else
     pip install . --upgrade ;
@@ -30,4 +34,4 @@ script:
   fi
 
 after_success:
-- if [ $TRAVIS_PYTHON_VERSION == '3.7' ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then codecov; fi
+- if [ $TRAVIS_PYTHON_VERSION == '3.8' ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then codecov; fi
