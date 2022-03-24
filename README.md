@@ -14,6 +14,8 @@ Sentinel-2 imagery. The classification is based on a *single-scene pixel-based c
 developed by Sentinel Hub's research team and is described in more details
 [in this blog](https://medium.com/sentinel-hub/improving-cloud-detection-with-machine-learning-c09dc5d7cf13).
 
+The **s2cloudless** algorithm was part of an international collaborative effort aimed at intercomparing cloud detection algorithms. The s2cloudless algorithm was validated together with 9 other algorithms on 4 different test datasets and in all cases found to be on the Pareto front. See [the paper](https://www.sciencedirect.com/science/article/pii/S0034425722001043?via%3Dihub)  
+
 ## Installation
 
 The package requires a Python version >= 3.6. The package is available on
