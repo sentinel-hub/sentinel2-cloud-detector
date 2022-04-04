@@ -1,0 +1,88 @@
+name: build
+
+on:
+  push:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+
+  check-code-black:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out current branch
+        if: github.event_name == 'push'
+        uses: actions/checkout@v2
+
+      - name: Check code compliance with black
+        if: github.event_name == 'push'
+        run: |
+          pip install black[jupyter]
+          black . --check --diff
+
+  check-code-isort:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out current branch
+        if: github.event_name == 'push'
+        uses: actions/checkout@v2
+
+      - name: Check code compliance with isort
+        if: github.event_name == 'push'
+        run: |
+          pip install isort
+          isort **/*.py --check --diff
+
+  test-on-github:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - '3.7'
+          - '3.8'
+          - '3.9'
+          - '3.10'
+    steps:
+      - name: Check out current branch in case of a push event
+        if: github.event_name == 'push'
+        uses: actions/checkout@v2
+
+      - name: Check out develop branch in case of a scheduled event
+        if: github.event_name == 'schedule'
+        uses: actions/checkout@v2
+        with:
+          ref: develop
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libopenjp2-7
+          pip install .
+
+      - name: Run full tests and code coverage
+        if: matrix.python-version == '3.9'
+        run: |
+          sentinelhub.config \
+            --sh_client_id "${{ secrets.SH_CLIENT_ID }}" \
+            --sh_client_secret "${{ secrets.SH_CLIENT_SECRET }}"
+          pytest --cov --cov-report=term --cov-report=xml
+
+      - name: Run pylint and reduced tests
+        if: matrix.python-version != '3.9'
+        run: |
+          pylint sentinelhub
+          pytest -m "not sh_integration"
+
+      - name: Upload code coverage
+        if: matrix.python-version == '3.9'
+        uses: codecov/codecov-action@v2
+        with:
+          files: coverage.xml
+          fail_ci_if_error: true
+          verbose: false
