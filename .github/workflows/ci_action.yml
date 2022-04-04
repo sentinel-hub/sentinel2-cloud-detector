@@ -63,7 +63,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libopenjp2-7
-          pip install .
+          pip install -e .[DEV]
 
       - name: Run full tests and code coverage
         if: matrix.python-version == '3.9'
@@ -76,7 +76,7 @@ jobs:
       - name: Run pylint and reduced tests
         if: matrix.python-version != '3.9'
         run: |
-          pylint sentinelhub
+          pylint s2cloudless
           pytest -m "not sh_integration"
 
       - name: Upload code coverage
