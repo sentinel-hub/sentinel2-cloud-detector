@@ -24,7 +24,7 @@ def parse_requirements(file):
 
 setup(
     name="s2cloudless",
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     version=get_version(),
     description="Sentinel Hub's cloud detector for Sentinel-2 imagery",
     long_description=get_long_description(),
@@ -34,7 +34,6 @@ setup(
     author_email="anze.zupanc@sinergise.com",
     license="CC BY-SA 4.0",
     packages=find_packages(),
-    package_dir={"": "."},
     include_package_data=True,
     package_data={"s2cloudless": ["models/pixel_s2_cloud_detector_lightGBM_v0.1.txt"]},
     install_requires=parse_requirements("requirements.txt"),
@@ -49,10 +48,10 @@ setup(
         "Operating System :: Unix",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering",
     ],
 )
