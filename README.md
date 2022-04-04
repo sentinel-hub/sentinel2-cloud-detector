@@ -1,6 +1,7 @@
 [![Package version](https://badge.fury.io/py/s2cloudless.svg)](https://pypi.org/project/s2cloudless)
+[![Conda version](https://img.shields.io/conda/vn/conda-forge/s2cloudless.svg)](https://anaconda.org/conda-forge/s2cloudless)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/s2cloudless.svg?style=flat-square)](https://pypi.org/project/s2cloudless)
-[![Build Status](https://www.travis-ci.com/sentinel-hub/sentinel2-cloud-detector.svg?branch=master)](https://app.travis-ci.com/github/sentinel-hub/sentinel2-cloud-detector/builds)
+[![Build Status](https://github.com/sentinel-hub/sentinel2-cloud-detector/actions/workflows/ci_action.yml/badge.svg?branch=master)](https://github.com/sentinel-hub/sentinel2-cloud-detector/actions)
 [![Overall downloads](https://pepy.tech/badge/s2cloudless)](https://pepy.tech/project/s2cloudless)
 [![Last month downloads](https://pepy.tech/badge/s2cloudless/month)](https://pepy.tech/project/s2cloudless)
 [![Code coverage](https://codecov.io/gh/sentinel-hub/sentinel2-cloud-detector/branch/master/graph/badge.svg)](https://codecov.io/gh/sentinel-hub/sentinel2-cloud-detector)
@@ -11,12 +12,12 @@
 
 The **s2cloudless** Python package provides automated cloud detection in
 Sentinel-2 imagery. The classification is based on a *single-scene pixel-based cloud detector*
-developed by Sentinel Hub's research team and is described in more details
+developed by Sentinel Hub's research team and is described in more detail
 [in this blog](https://medium.com/sentinel-hub/improving-cloud-detection-with-machine-learning-c09dc5d7cf13).
 
 ## Installation
 
-The package requires a Python version >= 3.6. The package is available on
+The package requires a Python version >= 3.7. The package is available on
 the PyPI package manager and can be installed with
 
 ```
@@ -36,17 +37,13 @@ Before installing `s2cloudless` on **Windows**, it is recommended to install pac
 
 ## Input: Sentinel-2 scenes
 
-The inputs to the cloud detector are Sentinel-2 images. In particular, the cloud detector requires the following 10
-Sentinel-2 band reflectances: B01, B02, B04, B05, B08, B8A, B09, B10, B11, B12, which are obtained from raw
-reflectance value in the following way: `B_i/10000`.
+The inputs to the cloud detector are Sentinel-2 images. In particular, the cloud detector requires the following 10 Sentinel-2 band reflectances: B01, B02, B04, B05, B08, B8A, B09, B10, B11, B12, which are obtained from raw reflectance values in the following way: `B_i/10000`. From product baseline `04.00` onward additional harmonization factors have to be applied to data according to [instructions from ESA](https://sentinels.copernicus.eu/en/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming).
 
-You don't need to worry about any of this, if you're doing classification of scenes obtained using [Sentinel Hub
-Process API](https://docs.sentinel-hub.com/api/latest/api/process/). The API is supported in Python with 
-[sentinelhub-py](https://github.com/sentinel-hub/sentinelhub-py) package.
+You don't need to worry about any of this, if you are using Sentinel-2 data obtained from [Sentinel Hub Process API](https://docs.sentinel-hub.com/api/latest/api/process/). By default, the data is already harmonized according to [documentation](https://docs.sentinel-hub.com/api/latest/data/sentinel-2-l1c/#harmonize-values). The API is supported in Python with [sentinelhub-py](https://github.com/sentinel-hub/sentinelhub-py) package and used within `s2cloudless.CloudMaskRequest` class.
 
 ## Examples
 
-Jupyter notebook on how to use the cloud detector to produce cloud mask or cloud probability map
+A Jupyter notebook on how to use the cloud detector to produce cloud mask or cloud probability map
 can be found in the [examples folder](https://github.com/sentinel-hub/sentinel2-cloud-detector/tree/master/examples).
 
 ## License

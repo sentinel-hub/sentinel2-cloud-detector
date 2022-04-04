@@ -3,8 +3,8 @@ Tests for pixel_classifier.py module
 """
 import os
 
-import pytest
 import numpy as np
+import pytest
 from lightgbm import Booster
 
 import s2cloudless
@@ -12,19 +12,22 @@ from s2cloudless import PixelClassifier
 from s2cloudless.cloud_detector import MODEL_FILENAME
 
 
-@pytest.fixture(name='booster')
+@pytest.fixture(name="booster")
 def booster_fixture():
     package_path = os.path.dirname(s2cloudless.__file__)
-    model_path = os.path.join(package_path, 'models', MODEL_FILENAME)
+    model_path = os.path.join(package_path, "models", MODEL_FILENAME)
     return Booster(model_file=model_path)
 
 
-@pytest.mark.parametrize('input_array,expected_result',[
-    (np.ones(5), None),
-    (np.ones((5, 5)), None),
-    (np.ones((5, 5, 5)), None),
-    (np.ones((5, 5, 5, 5)), np.ones((5 * 5 * 5, 5)))
-])
+@pytest.mark.parametrize(
+    "input_array,expected_result",
+    [
+        (np.ones(5), None),
+        (np.ones((5, 5)), None),
+        (np.ones((5, 5, 5)), None),
+        (np.ones((5, 5, 5, 5)), np.ones((5 * 5 * 5, 5))),
+    ],
+)
 def test_extract_pixels(input_array, expected_result, booster):
     classifier = PixelClassifier(booster)
 

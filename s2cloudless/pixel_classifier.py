@@ -23,6 +23,7 @@ class PixelClassifier:
     The APIs of scikit-learn's objects is described
     at: http://scikit-learn.org/stable/developers/contributing.html#apis-of-scikit-learn-objects.
     """
+
     def __init__(self, classifier):
         """
         :param classifier: An instance of trained classifier that will be executed over an entire image
@@ -39,17 +40,17 @@ class PixelClassifier:
         if isinstance(classifier, Booster):
             return
 
-        predict = getattr(classifier, 'predict', None)
+        predict = getattr(classifier, "predict", None)
         if not callable(predict):
-            raise ValueError('Classifier does not have a predict method!')
+            raise ValueError("Classifier does not have a predict method!")
 
-        predict_proba = getattr(classifier, 'predict_proba', None)
+        predict_proba = getattr(classifier, "predict_proba", None)
         if not callable(predict_proba):
-            raise ValueError('Classifier does not have a predict_proba method!')
+            raise ValueError("Classifier does not have a predict_proba method!")
 
     @staticmethod
     def extract_pixels(data):
-        """ Extracts pixels from data array
+        """Extracts pixels from data array
 
         :param data: Array of images to be classified.
         :type data: numpy array, shape = [n_images, n_pixels_y, n_pixels_x, n_bands]
@@ -58,8 +59,10 @@ class PixelClassifier:
         :raises: ValueError is input array has wrong dimensions
         """
         if len(data.shape) != 4:
-            raise ValueError('Array of input images has to be a 4-dimensional array of shape'
-                             '[n_images, n_pixels_y, n_pixels_x, n_bands]')
+            raise ValueError(
+                "Array of input images has to be a 4-dimensional array of shape"
+                "[n_images, n_pixels_y, n_pixels_x, n_bands]"
+            )
 
         new_shape = data.shape[0] * data.shape[1] * data.shape[2], data.shape[3]
         pixels = data.reshape(new_shape)
@@ -78,8 +81,10 @@ class PixelClassifier:
         pixels = self.extract_pixels(data)
 
         if isinstance(self.classifier, Booster):
-            raise NotImplementedError('An instance of lightgbm.Booster can only return prediction probabilities, '
-                                      'use PixelClassifier.image_predict_proba instead')
+            raise NotImplementedError(
+                "An instance of lightgbm.Booster can only return prediction probabilities, "
+                "use PixelClassifier.image_predict_proba instead"
+            )
 
         predictions = self.classifier.predict(pixels, **kwargs)
 
@@ -99,7 +104,7 @@ class PixelClassifier:
 
         if isinstance(self.classifier, Booster):
             probabilities = self.classifier.predict(pixels, **kwargs)
-            probabilities = np.vstack((1. - probabilities, probabilities)).transpose()
+            probabilities = np.vstack((1.0 - probabilities, probabilities)).transpose()
         else:
             probabilities = self.classifier.predict_proba(pixels, **kwargs)
 

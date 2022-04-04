@@ -4,23 +4,45 @@ Module using sentinelhub-py to interact with Sentinel Hub services
 import datetime as dt
 
 import numpy as np
-from sentinelhub import SentinelHubRequest, SentinelHubCatalog, SentinelHubDownloadClient, DataCollection, \
-    MimeType, parse_time_interval, filter_times
+
+from sentinelhub import (
+    DataCollection,
+    MimeType,
+    SentinelHubCatalog,
+    SentinelHubDownloadClient,
+    SentinelHubRequest,
+    SHConfig,
+    filter_times,
+    parse_time_interval,
+)
 
 from .utils import get_s2_evalscript
 
 
 class NoDataAvailableException(RuntimeError):
-    """ Raise in case there is no Sentinel-2 data available for give request
-    """
+    """Raise in case there is no Sentinel-2 data available for give request"""
 
 
 class CloudMaskRequest:
-    """ Obtains data from Sentinel Hub service and calculates cloud masks and probabilities for all dates in a time
+    """Obtains data from Sentinel Hub service and calculates cloud masks and probabilities for all dates in a time
     range
     """
-    def __init__(self, cloud_detector, bbox, time, *, size=None, resolution=None, maxcc=None,
-                 time_difference=None, data_folder=None, config=None, **kwargs):
+
+    def __init__(
+        self,
+        cloud_detector,
+        bbox,
+        time,
+        *,
+        size=None,
+        resolution=None,
+        maxcc=None,
+        time_difference=None,
+        data_folder=None,
+        data_collection=DataCollection.SENTINEL2_L1C,
+        config=None,
+        **kwargs
+    ):
         """
         :param cloud_detector: An instance of a cloud detector object
         :type cloud_detector: S2PixelCloudDetector
@@ -39,6 +61,8 @@ class CloudMaskRequest:
         :type time_difference: datetime.timedelta or None
         :param data_folder: A location of the directory where downloaded data will be saved.
         :type data_folder: str or None
+        :param data_collection: A Sentinel-2 L1C collection from where data will be collected.
+        :type data_collection: DataCollection
         :param config: An instance of config class to override parameters from the saved configuration.
         :type config: SHConfig or None
         :param kwargs: Additional arguments to be passed to `SentinelHubRequest.input_data`, e.g. `upsampling` or
@@ -52,7 +76,9 @@ class CloudMaskRequest:
         self.maxcc = maxcc
         self.time_difference = time_difference or dt.timedelta(seconds=0)
         self.data_folder = data_folder
-        self.config = config
+        self.data_collection = DataCollection(data_collection)
+        self.config = config.copy() if config else SHConfig()
+        self.config.sh_base_url = self.data_collection.service_url
         self.kwargs = kwargs
 
         self.timestamps = None
@@ -63,19 +89,16 @@ class CloudMaskRequest:
         self.api_requests = self._prepare_api_requests()
 
     def __len__(self):
-        """ Provide a number of acquisitions (i.e. the same as number of cloud masks)
-        """
+        """Provide a number of acquisitions (i.e. the same as number of cloud masks)"""
         return len(self.api_requests)
 
     def __iter__(self):
-        """ Iterate over probability masks, cloud masks and bands
-        """
+        """Iterate over probability masks, cloud masks and bands"""
         cloud_masks = self.get_cloud_masks()
         return zip(self.probability_masks, cloud_masks, self.bands)
 
     def _prepare_api_requests(self):
-        """ Prepare a list of Process API requests defining what data will be downloaded
-        """
+        """Prepare a list of Process API requests defining what data will be downloaded"""
         timestamps = self.get_timestamps()
         evalscript = get_s2_evalscript(all_bands=self.cloud_detector.all_bands, reflectance=False)
 
@@ -85,27 +108,27 @@ class CloudMaskRequest:
                 evalscript=evalscript,
                 input_data=[
                     SentinelHubRequest.input_data(
-                        data_collection=DataCollection.SENTINEL2_L1C,
+                        data_collection=self.data_collection,
                         time_interval=(timestamp - self.time_difference, timestamp + self.time_difference),
                         **self.kwargs
                     )
                 ],
                 responses=[
-                    SentinelHubRequest.output_response('default', MimeType.TIFF),
-                    SentinelHubRequest.output_response('userdata', MimeType.JSON)
+                    SentinelHubRequest.output_response("default", MimeType.TIFF),
+                    SentinelHubRequest.output_response("userdata", MimeType.JSON),
                 ],
                 bbox=self.bbox,
                 size=self.size,
                 resolution=self.resolution,
                 config=self.config,
-                data_folder=self.data_folder
+                data_folder=self.data_folder,
             )
             api_requests.append(request)
 
         return api_requests
 
     def get_timestamps(self):
-        """ Get the list of timestamps from within date range for which data of the bbox is available.
+        """Get the list of timestamps from within date range for which data of the bbox is available.
 
         :return: A list of timestamps
         :rtype: list(datetime.datetime)
@@ -120,28 +143,20 @@ class CloudMaskRequest:
             self.timestamps = filter_times(self.timestamps, self.time_difference)
 
         if not self.timestamps:
-            raise NoDataAvailableException('There are no Sentinel-2 images available for given parameters')
+            raise NoDataAvailableException("There are no Sentinel-2 images available for given parameters")
 
         return self.timestamps
 
     def _get_timestamps_from_catalog(self, time_interval):
-        """ Collects a list of timestamps from Sentinel Hub Catalog API
-        """
-        catalog = SentinelHubCatalog(
-            base_url=DataCollection.SENTINEL2_L1C.service_url,
-            config=self.config
-        )
+        """Collects a list of timestamps from Sentinel Hub Catalog API"""
+        catalog = SentinelHubCatalog(config=self.config)
 
         cloud_cover_query = None
         if self.maxcc is not None:
-            cloud_cover_query = {
-                "eo:cloud_cover": {
-                    "lt": 100 * float(self.maxcc)
-                }
-            }
+            cloud_cover_query = {"eo:cloud_cover": {"lt": 100 * float(self.maxcc)}}
 
         search_iterator = catalog.search(
-            DataCollection.SENTINEL2_L1C,
+            self.data_collection,
             bbox=self.bbox,
             time=time_interval,
             query=cloud_cover_query,
@@ -149,13 +164,13 @@ class CloudMaskRequest:
                 "include": [
                     "properties.datetime",
                 ],
-                "exclude": []
-            }
+                "exclude": [],
+            },
         )
         return search_iterator.get_timestamps()
 
     def get_data(self):
-        """ Returns downloaded bands
+        """Returns downloaded bands
 
         :return: numpy array of shape `(times, height, width, bands)`
         :rtype: numpy.ndarray
@@ -165,7 +180,7 @@ class CloudMaskRequest:
         return self.bands
 
     def get_data_mask(self):
-        """ Returns valid data mask.
+        """Returns valid data mask.
 
         :return: numpy array of shape `(times, height, width)`
         :rtype: numpy.ndarray
@@ -175,15 +190,14 @@ class CloudMaskRequest:
         return self.data_mask
 
     def _download_bands_and_valid_data_mask(self):
-        """ Downloads band data and valid mask. Sets parameters self.bands, self.data_mask
-        """
+        """Downloads band data and valid mask. Sets parameters self.bands, self.data_mask"""
         download_requests = [api_request.download_list[0] for api_request in self.api_requests]
         client = SentinelHubDownloadClient(config=self.config)
 
         responses = client.download(download_requests)
 
-        data = np.asarray([response['default.tif'] for response in responses], dtype=np.float32)
-        norm_factors = [response['userdata.json']['norm_factor'] for response in responses]
+        data = np.asarray([response["default.tif"] for response in responses], dtype=np.float32)
+        norm_factors = [response["userdata.json"]["norm_factor"] for response in responses]
         del responses
 
         self.bands = data[..., :-1]
@@ -211,7 +225,7 @@ class CloudMaskRequest:
         return self.probability_masks
 
     def get_cloud_masks(self, threshold=None, non_valid_value=0):
-        """ The binary cloud mask is computed on the fly. Be cautious. The pixels without valid data are assigned
+        """The binary cloud mask is computed on the fly. Be cautious. The pixels without valid data are assigned
         non_valid_value.
 
         :param threshold: A float from [0,1] specifying threshold

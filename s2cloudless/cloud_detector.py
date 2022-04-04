@@ -4,15 +4,14 @@ Module for making pixel-based classification on Sentinel-2 L1C imagery
 import os
 
 import numpy as np
-from scipy.ndimage.filters import convolve
-from skimage.morphology import disk, dilation
 from lightgbm import Booster
+from scipy.ndimage.filters import convolve
+from skimage.morphology import dilation, disk
 
 from .pixel_classifier import PixelClassifier
 from .utils import MODEL_BAND_IDS
 
-
-MODEL_FILENAME = 'pixel_s2_cloud_detector_lightGBM_v0.1.txt'
+MODEL_FILENAME = "pixel_s2_cloud_detector_lightGBM_v0.1.txt"
 
 
 class S2PixelCloudDetector:
@@ -56,7 +55,7 @@ class S2PixelCloudDetector:
 
         if model_filename is None:
             package_dir = os.path.dirname(__file__)
-            model_filename = os.path.join(package_dir, 'models', MODEL_FILENAME)
+            model_filename = os.path.join(package_dir, "models", MODEL_FILENAME)
         self.model_filename = model_filename
 
         self._classifier = None
@@ -98,8 +97,10 @@ class S2PixelCloudDetector:
         band_num = data.shape[-1]
         exp_bands = 13 if self.all_bands else len(MODEL_BAND_IDS)
         if band_num != exp_bands:
-            raise ValueError(f"Parameter 'all_bands' is set to {self.all_bands}. Therefore expected band data with "
-                             f"{exp_bands} bands, got {band_num} bands")
+            raise ValueError(
+                f"Parameter 'all_bands' is set to {self.all_bands}. Therefore expected band data with "
+                f"{exp_bands} bands, got {band_num} bands"
+            )
 
         if self.all_bands:
             data = data[..., MODEL_BAND_IDS]
@@ -149,12 +150,14 @@ class S2PixelCloudDetector:
         threshold = self.threshold if threshold is None else threshold
 
         if self.average_over:
-            cloud_masks = np.asarray([convolve(cloud_prob, self.conv_filter) > threshold
-                                      for cloud_prob in cloud_probs], dtype=np.int8)
+            cloud_masks = np.asarray(
+                [convolve(cloud_prob, self.conv_filter) > threshold for cloud_prob in cloud_probs], dtype=np.int8
+            )
         else:
             cloud_masks = (cloud_probs > threshold).astype(np.int8)
 
         if self.dilation_size:
-            cloud_masks = np.asarray([dilation(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks],
-                                     dtype=np.int8)
+            cloud_masks = np.asarray(
+                [dilation(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks], dtype=np.int8
+            )
         return cloud_masks

@@ -7,10 +7,12 @@ help:
 
 
 upload:
-	$(PYTHON) setup.py sdist
+	rm -r dist build | true
+	$(PYTHON) setup.py sdist bdist_wheel
 	twine upload dist/*
 
 # For testing:
 test-upload:
-	$(PYTHON) setup.py sdist
+	rm -r dist build | true
+	$(PYTHON) setup.py sdist bdist_wheel
 	twine upload --repository testpypi dist/*
