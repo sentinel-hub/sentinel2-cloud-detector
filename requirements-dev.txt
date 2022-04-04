@@ -2,5 +2,7 @@ pytest>=3.0.0
 pytest-subtests
 pytest-cov
 codecov
+black[jupyter]>=22.3.0
+isort
 pylint
 twine
