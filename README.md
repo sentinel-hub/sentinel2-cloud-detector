@@ -1,6 +1,7 @@
 [![Package version](https://badge.fury.io/py/s2cloudless.svg)](https://pypi.org/project/s2cloudless)
+[![Conda version](https://img.shields.io/conda/vn/conda-forge/s2cloudless.svg)](https://anaconda.org/conda-forge/s2cloudless)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/s2cloudless.svg?style=flat-square)](https://pypi.org/project/s2cloudless)
-[![Build Status](https://www.travis-ci.com/sentinel-hub/sentinel2-cloud-detector.svg?branch=master)](https://app.travis-ci.com/github/sentinel-hub/sentinel2-cloud-detector/builds)
+[![Build Status](https://github.com/sentinel-hub/sentinel2-cloud-detector/actions/workflows/ci_action.yml/badge.svg?branch=master)](https://github.com/sentinel-hub/sentinel2-cloud-detector/actions)
 [![Overall downloads](https://pepy.tech/badge/s2cloudless)](https://pepy.tech/project/s2cloudless)
 [![Last month downloads](https://pepy.tech/badge/s2cloudless/month)](https://pepy.tech/project/s2cloudless)
 [![Code coverage](https://codecov.io/gh/sentinel-hub/sentinel2-cloud-detector/branch/master/graph/badge.svg)](https://codecov.io/gh/sentinel-hub/sentinel2-cloud-detector)
@@ -16,7 +17,7 @@ developed by Sentinel Hub's research team and is described in more detail
 
 ## Installation
 
-The package requires a Python version >= 3.6. The package is available on
+The package requires a Python version >= 3.7. The package is available on
 the PyPI package manager and can be installed with
 
 ```
