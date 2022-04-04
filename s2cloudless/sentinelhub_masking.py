@@ -5,7 +5,7 @@ import datetime as dt
 
 import numpy as np
 from sentinelhub import SentinelHubRequest, SentinelHubCatalog, SentinelHubDownloadClient, DataCollection, \
-    MimeType, parse_time_interval, filter_times
+    MimeType, parse_time_interval, filter_times, SHConfig
 
 from .utils import get_s2_evalscript
 
@@ -20,7 +20,8 @@ class CloudMaskRequest:
     range
     """
     def __init__(self, cloud_detector, bbox, time, *, size=None, resolution=None, maxcc=None,
-                 time_difference=None, data_folder=None, config=None, **kwargs):
+                 time_difference=None, data_folder=None, data_collection=DataCollection.SENTINEL2_L1C, config=None,
+                 **kwargs):
         """
         :param cloud_detector: An instance of a cloud detector object
         :type cloud_detector: S2PixelCloudDetector
@@ -39,6 +40,8 @@ class CloudMaskRequest:
         :type time_difference: datetime.timedelta or None
         :param data_folder: A location of the directory where downloaded data will be saved.
         :type data_folder: str or None
+        :param data_collection: A Sentinel-2 L1C collection from where data will be collected.
+        :type data_collection: DataCollection
         :param config: An instance of config class to override parameters from the saved configuration.
         :type config: SHConfig or None
         :param kwargs: Additional arguments to be passed to `SentinelHubRequest.input_data`, e.g. `upsampling` or
@@ -52,7 +55,9 @@ class CloudMaskRequest:
         self.maxcc = maxcc
         self.time_difference = time_difference or dt.timedelta(seconds=0)
         self.data_folder = data_folder
-        self.config = config
+        self.data_collection = DataCollection(data_collection)
+        self.config = config.copy() if config else SHConfig()
+        self.config.sh_base_url = self.data_collection.service_url
         self.kwargs = kwargs
 
         self.timestamps = None
@@ -85,7 +90,7 @@ class CloudMaskRequest:
                 evalscript=evalscript,
                 input_data=[
                     SentinelHubRequest.input_data(
-                        data_collection=DataCollection.SENTINEL2_L1C,
+                        data_collection=self.data_collection,
                         time_interval=(timestamp - self.time_difference, timestamp + self.time_difference),
                         **self.kwargs
                     )
@@ -127,10 +132,7 @@ class CloudMaskRequest:
     def _get_timestamps_from_catalog(self, time_interval):
         """ Collects a list of timestamps from Sentinel Hub Catalog API
         """
-        catalog = SentinelHubCatalog(
-            base_url=DataCollection.SENTINEL2_L1C.service_url,
-            config=self.config
-        )
+        catalog = SentinelHubCatalog(config=self.config)
 
         cloud_cover_query = None
         if self.maxcc is not None:
@@ -141,7 +143,7 @@ class CloudMaskRequest:
             }
 
         search_iterator = catalog.search(
-            DataCollection.SENTINEL2_L1C,
+            self.data_collection,
             bbox=self.bbox,
             time=time_interval,
             query=cloud_cover_query,
