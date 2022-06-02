@@ -4,5 +4,5 @@ pytest-cov
 codecov
 black[jupyter]>=22.3.0
 isort
-pylint
+pylint>=2.14.0
 twine
