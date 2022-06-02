@@ -196,6 +196,7 @@ class CloudMaskRequest:
 
         responses = client.download(download_requests)
 
+        # pylint: disable=not-an-iterable
         data = np.asarray([response["default.tif"] for response in responses], dtype=np.float32)
         norm_factors = [response["userdata.json"]["norm_factor"] for response in responses]
         del responses

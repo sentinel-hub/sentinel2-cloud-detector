@@ -9,6 +9,24 @@ known_absolute = "s2cloudless"
 sections = ["FUTURE","STDLIB","THIRDPARTY","FIRSTPARTY","ABSOLUTE","LOCALFOLDER"]
 line_length = 120
 
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.messages_control]
+disable = [
+    "no-member",
+    "arguments-differ",
+    "assignment-from-no-return",
+    "unsubscriptable-object",
+    "invalid-unary-operand-type",
+    "unspecified-encoding",
+    "unnecessary-ellipsis"
+]
+
+[tool.pylint.design]
+max-args = 10
+max-attributes = 20
+
 [tool.pytest.ini_options]
 markers = [
     "sh_integration: marks integration tests with Sentinel Hub service"
