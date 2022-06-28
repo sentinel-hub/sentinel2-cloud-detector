@@ -9,6 +9,11 @@ known_absolute = "s2cloudless"
 sections = ["FUTURE","STDLIB","THIRDPARTY","FIRSTPARTY","ABSOLUTE","LOCALFOLDER"]
 line_length = 120
 
+[tool.nbqa.addopts]
+flake8 = [
+    "--extend-ignore=E402"
+]
+
 [tool.pylint.format]
 max-line-length = 120
 

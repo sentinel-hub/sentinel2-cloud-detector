@@ -47,7 +47,6 @@ class S2PixelCloudDetector:
     """
 
     def __init__(self, threshold=0.4, all_bands=False, average_over=1, dilation_size=1, model_filename=None):
-
         self.threshold = threshold
         self.all_bands = all_bands
         self.average_over = average_over
