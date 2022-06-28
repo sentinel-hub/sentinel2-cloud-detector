@@ -59,7 +59,7 @@ jobs:
         run: pip install -e .[DEV]
 
       - name: Run pylint
-        run: pylint sentinelhub
+        run: pylint s2cloudless
 
   test-on-github:
     runs-on: ubuntu-latest
