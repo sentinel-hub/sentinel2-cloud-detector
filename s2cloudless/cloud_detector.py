@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 from lightgbm import Booster
-from scipy.ndimage.filters import convolve
+from scipy.ndimage import convolve
 from skimage.morphology import dilation, disk
 
 from .pixel_classifier import PixelClassifier
