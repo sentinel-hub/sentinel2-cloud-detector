@@ -41,7 +41,7 @@ class CloudMaskRequest:
         data_folder=None,
         data_collection=DataCollection.SENTINEL2_L1C,
         config=None,
-        **kwargs
+        **kwargs,
     ):
         """
         :param cloud_detector: An instance of a cloud detector object
@@ -110,7 +110,7 @@ class CloudMaskRequest:
                     SentinelHubRequest.input_data(
                         data_collection=self.data_collection,
                         time_interval=(timestamp - self.time_difference, timestamp + self.time_difference),
-                        **self.kwargs
+                        **self.kwargs,
                     )
                 ],
                 responses=[
@@ -153,13 +153,13 @@ class CloudMaskRequest:
 
         cloud_cover_query = None
         if self.maxcc is not None:
-            cloud_cover_query = {"eo:cloud_cover": {"lt": 100 * float(self.maxcc)}}
+            cloud_cover_query = f"eo:cloud_cover < {100 * float(self.maxcc)}"
 
         search_iterator = catalog.search(
             self.data_collection,
             bbox=self.bbox,
             time=time_interval,
-            query=cloud_cover_query,
+            filter=cloud_cover_query,
             fields={
                 "include": [
                     "properties.datetime",
