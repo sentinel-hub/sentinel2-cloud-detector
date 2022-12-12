@@ -107,7 +107,7 @@ class S2PixelCloudDetector:
         proba = self.classifier.image_predict_proba(data, **kwargs)[..., 1]
 
         if is_single_temporal:
-            return proba[0]
+            return proba.squeeze(axis=0)
         return proba
 
     def get_cloud_masks(self, data, **kwargs):
@@ -123,15 +123,9 @@ class S2PixelCloudDetector:
         :return: raster cloud mask
         :rtype: numpy array (shape n_images x n x m)
         """
-        is_single_temporal = data.ndim == 3
-        if is_single_temporal:
-            data = data[np.newaxis, ...]
-
         cloud_probs = self.get_cloud_probability_maps(data, **kwargs)
         cloud_masks = self.get_mask_from_prob(cloud_probs)
 
-        if is_single_temporal:
-            return cloud_masks[0]
         return cloud_masks
 
     def get_mask_from_prob(self, cloud_probs, threshold=None):
@@ -140,12 +134,17 @@ class S2PixelCloudDetector:
         to input cloud probabilities.
 
         :param cloud_probs: cloud probability map
-        :type cloud_probs: numpy array of cloud probabilities (shape n_images x n x m)
+        :type cloud_probs: numpy array of cloud probabilities (n_images, n, m) or (n, m)
         :param threshold: A float from [0,1] specifying threshold
         :type threshold: float
         :return: raster cloud mask
-        :rtype: numpy array (shape n_images x n x m)
+        :rtype: numpy array (n_images, n, m) or (n, m)
         """
+
+        is_single_temporal = cloud_probs.ndim == 2
+        if is_single_temporal:
+            cloud_probs = cloud_probs[np.newaxis, ...]
+
         threshold = self.threshold if threshold is None else threshold
 
         if self.average_over:
@@ -159,4 +158,8 @@ class S2PixelCloudDetector:
             cloud_masks = np.asarray(
                 [dilation(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks], dtype=np.int8
             )
+
+        if is_single_temporal:
+            return cloud_masks.squeeze(axis=0)
+
         return cloud_masks
