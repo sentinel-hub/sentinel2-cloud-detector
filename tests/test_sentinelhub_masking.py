@@ -12,6 +12,8 @@ from sentinelhub.testing_utils import assert_statistics_match
 
 from s2cloudless import CloudMaskRequest, NoDataAvailableException, S2PixelCloudDetector
 
+pytestmark = pytest.mark.sh_integration
+
 BBOX1 = BBox([-90.9216499, 14.4190528, -90.8186531, 14.5520163], crs=CRS.WGS84)
 BBOX2 = BBox(((624024.4, 8214123.1), (661906.6, 8276948.7)), crs=CRS.UTM_38S)
 
