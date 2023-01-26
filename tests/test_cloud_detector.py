@@ -12,7 +12,7 @@ from s2cloudless import S2PixelCloudDetector
 
 @pytest.fixture(name="data", scope="module")
 def data_fixture():
-    return np.load(os.path.join("TestInputs", "input_arrays.npz"))
+    return np.load(os.path.join(os.path.dirname(__file__), "TestInputs", "input_arrays.npz"))
 
 
 @pytest.fixture(name="cloud_detector", scope="module")
