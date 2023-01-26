@@ -31,7 +31,7 @@ def config_fixture():
 
 
 @pytest.mark.parametrize(
-    "input_params,stats",
+    "input_params, mask_shape, clm_stats, clp_stats",
     [
         (
             dict(
@@ -40,16 +40,18 @@ def config_fixture():
                 time=("2017-12-01", "2017-12-31"),
                 size=(60, 81),
             ),
+            (7, 81, 60),
             dict(
-                clm_min=0,
-                clm_max=1,
-                clm_mean=0.343827,
-                clm_median=0,
-                clp_min=0.00011,
-                clp_max=0.99999,
-                clp_mean=0.23959,
-                clp_median=0.01897,
-                mask_shape=(7, 81, 60),
+                exp_min=0,
+                exp_max=1,
+                exp_mean=0.343827,
+                exp_median=0,
+            ),
+            dict(
+                exp_min=0.00011,
+                exp_max=0.99999,
+                exp_mean=0.23959,
+                exp_median=0.01897,
             ),
         ),
         (
@@ -60,16 +62,18 @@ def config_fixture():
                 resolution=(100, 100),
                 time_difference=dt.timedelta(hours=1),
             ),
+            (1, 628, 379),
             dict(
-                clm_min=0,
-                clm_max=1,
-                clm_mean=0.05164,
-                clm_median=0,
-                clp_min=0.00011,
-                clp_max=0.99966,
-                clp_mean=0.055365,
-                clp_median=0.0141596,
-                mask_shape=(1, 628, 379),
+                exp_min=0,
+                exp_max=1,
+                exp_mean=0.05164,
+                exp_median=0,
+            ),
+            dict(
+                exp_min=0.00011,
+                exp_max=0.99966,
+                exp_mean=0.055365,
+                exp_median=0.0141596,
             ),
         ),
         (
@@ -82,61 +86,45 @@ def config_fixture():
                 maxcc=0.1,
                 downsampling="BICUBIC",
             ),
+            (1, 250, 250),
             dict(
-                clm_min=0,
-                clm_max=1,
-                clm_mean=0.87632,
-                clm_median=1,
-                clp_min=0.00352,
-                clp_max=0.99966,
-                clp_mean=0.789795,
-                clp_median=0.953203,
-                mask_shape=(1, 250, 250),
+                exp_min=0,
+                exp_max=1,
+                exp_mean=0.87632,
+                exp_median=1,
+            ),
+            dict(
+                exp_min=0.00352,
+                exp_max=0.99966,
+                exp_mean=0.789795,
+                exp_median=0.953203,
             ),
         ),
     ],
     ids=["basic", "resolution", "maxcc,downsampling"],
 )
-def test_cloud_mask_request(input_params, stats, config):
+def test_cloud_mask_request(input_params, mask_shape, clm_stats, clp_stats, config):
     """Integration tests for CloudMasKRequest class that interacts with Sentinel Hub service"""
     request = CloudMaskRequest(config=config, **input_params)
 
     masks = request.get_cloud_masks()
-    assert_statistics_match(
-        masks,
-        exp_shape=stats["mask_shape"],
-        exp_dtype=np.int8,
-        exp_min=stats["clm_min"],
-        exp_max=stats["clm_max"],
-        exp_mean=stats["clm_mean"],
-        exp_median=stats["clm_median"],
-        abs_delta=1e-4,
-    )
+    assert_statistics_match(masks, exp_shape=mask_shape, exp_dtype=np.int8, **clm_stats, abs_delta=1e-4)
 
     prob_masks = request.get_probability_masks(non_valid_value=-50)
-    assert_statistics_match(
-        prob_masks,
-        exp_shape=stats["mask_shape"],
-        exp_dtype=np.float64,
-        exp_min=stats["clp_min"],
-        exp_max=stats["clp_max"],
-        exp_mean=stats["clp_mean"],
-        exp_median=stats["clp_median"],
-        abs_delta=1e-4,
-    )
+    assert_statistics_match(prob_masks, exp_shape=mask_shape, exp_dtype=np.float64, **clp_stats, abs_delta=1e-4)
 
     timestamps = request.get_timestamps()
     assert isinstance(timestamps, list)
-    assert len(timestamps) == stats["mask_shape"][0]
+    assert len(timestamps) == mask_shape[0]
     assert all(isinstance(timestamp, dt.datetime) for timestamp in timestamps)
 
     data = request.get_data()
     band_num = 13 if request.cloud_detector.all_bands else 10
-    assert data.shape == stats["mask_shape"] + (band_num,)
+    assert data.shape == mask_shape + (band_num,)
     assert data.dtype == np.float32
 
     data_mask = request.get_data_mask()
-    assert data_mask.shape == stats["mask_shape"]
+    assert data_mask.shape == mask_shape
     assert data_mask.dtype == bool
 
 
