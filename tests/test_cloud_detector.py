@@ -15,16 +15,12 @@ def data_fixture():
     return np.load(os.path.join(os.path.dirname(__file__), "TestInputs", "input_arrays.npz"))
 
 
-@pytest.fixture(name="cloud_detector", scope="module")
-def cloud_detector_fixture():
-    return S2PixelCloudDetector(all_bands=True)
+@pytest.fixture(name="cloud_detector")
+def cloud_detector_fixture(request):
+    return S2PixelCloudDetector(all_bands=request.param)
 
 
-@pytest.fixture(name="cloud_detector_not_all", scope="module")
-def cloud_detector_not_all_fixture():
-    return S2PixelCloudDetector(all_bands=False)
-
-
+@pytest.mark.parametrize("cloud_detector", [True], indirect=True)
 def test_get_cloud_probability_maps(cloud_detector, data):
     cloud_probs = cloud_detector.get_cloud_probability_maps(data["s2_im"])
     assert_allclose(cloud_probs, data["cl_probs"], rtol=1e-5)
@@ -33,6 +29,7 @@ def test_get_cloud_probability_maps(cloud_detector, data):
     assert_allclose(single_temporal_cloud_probs, data["cl_probs"][0, ...], rtol=1e-5)
 
 
+@pytest.mark.parametrize("cloud_detector", [True], indirect=True)
 def test_get_cloud_masks(cloud_detector, data):
     cloud_mask = cloud_detector.get_cloud_masks(data["s2_im"])
     assert_array_equal(cloud_mask, data["cl_mask"])
@@ -41,6 +38,7 @@ def test_get_cloud_masks(cloud_detector, data):
     assert_array_equal(single_temporal_cloud_mask, data["cl_mask"][0, ...])
 
 
+@pytest.mark.parametrize("cloud_detector", [True], indirect=True)
 def test_get_mask_from_prob(cloud_detector, data):
     cloud_mask_from_prob = cloud_detector.get_mask_from_prob(data["cl_probs"])
     assert_array_equal(cloud_mask_from_prob, data["cl_mask"])
@@ -49,6 +47,7 @@ def test_get_mask_from_prob(cloud_detector, data):
     assert_array_equal(single_temporal_cloud_mask_from_probs, data["cl_mask"][0, ...])
 
 
-def test_get_cloud_probability_maps_invalid(cloud_detector_not_all, data):
+@pytest.mark.parametrize("cloud_detector", [False], indirect=True)
+def test_get_cloud_probability_maps_invalid(cloud_detector, data):
     with pytest.raises(ValueError):
-        cloud_detector_not_all.get_cloud_probability_maps(data["s2_im"])
+        cloud_detector.get_cloud_probability_maps(data["s2_im"])
