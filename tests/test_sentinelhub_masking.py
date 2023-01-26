@@ -95,7 +95,7 @@ def config_fixture():
     ],
     ids=["basic", "resolution", "maxcc,downsampling"],
 )
-def test_cloud_mask_request_values(input_params, stats, config):
+def test_cloud_mask_request(input_params, stats, config):
     """Integration tests for CloudMasKRequest class that interacts with Sentinel Hub service"""
     request = CloudMaskRequest(config=config, **input_params)
 
