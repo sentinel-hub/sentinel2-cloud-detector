@@ -8,10 +8,11 @@ import numpy as np
 import pytest
 
 from sentinelhub import CRS, BBox, SHConfig
+from sentinelhub.testing_utils import assert_statistics_match
 
 from s2cloudless import CloudMaskRequest, NoDataAvailableException, S2PixelCloudDetector
 
-pytestmark = pytest.mark.sh_integration
+pytestmark = pytest.mark.fast
 
 BBOX1 = BBox([-90.9216499, 14.4190528, -90.8186531, 14.5520163], crs=CRS.WGS84)
 BBOX2 = BBox(((624024.4, 8214123.1), (661906.6, 8276948.7)), crs=CRS.UTM_38S)
@@ -96,13 +97,12 @@ def config_fixture():
     ],
     ids=["basic", "resolution", "maxcc,downsampling"],
 )
-def test_cloud_mask_request(input_params, stats, config, subtests):
+def test_cloud_mask_request(input_params, stats, config):
     """Integration tests for CloudMasKRequest class that interacts with Sentinel Hub service"""
     request = CloudMaskRequest(config=config, **input_params)
 
     masks = request.get_cloud_masks()
-    _test_numpy_data(
-        subtests,
+    assert_statistics_match(
         masks,
         exp_shape=stats["mask_shape"],
         exp_dtype=np.int8,
@@ -110,12 +110,11 @@ def test_cloud_mask_request(input_params, stats, config, subtests):
         exp_max=stats["clm_max"],
         exp_mean=stats["clm_mean"],
         exp_median=stats["clm_median"],
-        delta=1e-4,
+        abs_delta=1e-4,
     )
 
     prob_masks = request.get_probability_masks(non_valid_value=-50)
-    _test_numpy_data(
-        subtests,
+    assert_statistics_match(
         prob_masks,
         exp_shape=stats["mask_shape"],
         exp_dtype=np.float64,
@@ -123,7 +122,7 @@ def test_cloud_mask_request(input_params, stats, config, subtests):
         exp_max=stats["clp_max"],
         exp_mean=stats["clp_mean"],
         exp_median=stats["clp_median"],
-        delta=1e-4,
+        abs_delta=1e-4,
     )
 
     timestamps = request.get_timestamps()
@@ -139,41 +138,6 @@ def test_cloud_mask_request(input_params, stats, config, subtests):
     data_mask = request.get_data_mask()
     assert data_mask.shape == stats["mask_shape"]
     assert data_mask.dtype == bool
-
-
-def _test_numpy_data(
-    subtests,
-    data,
-    *,
-    exp_shape=None,
-    exp_dtype=None,
-    exp_min=None,
-    exp_max=None,
-    exp_mean=None,
-    exp_median=None,
-    delta=None,
-):
-    """Tests stats of a numpy array"""
-    for exp_stat, stat_val, stat_name in [(exp_shape, data.shape, "shape"), (exp_dtype, data.dtype, "dtype")]:
-        if exp_stat is None:
-            continue
-
-        with subtests.test(msg=stat_name):
-            assert stat_val == exp_stat, f"Expected {stat_name} {exp_stat}, got {stat_val}"
-
-    data = data[~np.isnan(data)]
-    for exp_stat, stat_func, stat_name in [
-        (exp_min, np.amin, "min"),
-        (exp_max, np.amax, "max"),
-        (exp_mean, np.mean, "mean"),
-        (exp_median, np.median, "median"),
-    ]:
-        if exp_stat is None:
-            continue
-
-        stat_val = stat_func(data)
-        with subtests.test(msg=stat_name):
-            assert abs(stat_val - exp_stat) < delta, f"Expected {stat_name} {exp_stat}, got {stat_val}"
 
 
 def test_no_data_available_request(config):
