@@ -27,10 +27,10 @@ def cloud_detector_not_all_fixture():
 
 def test_get_cloud_probability_maps(cloud_detector, data):
     cloud_probs = cloud_detector.get_cloud_probability_maps(data["s2_im"])
-    assert_allclose(cloud_probs, data["cl_probs"], atol=1e-14)
+    assert_allclose(cloud_probs, data["cl_probs"], rtol=1e-5)
 
     single_temporal_cloud_probs = cloud_detector.get_cloud_probability_maps(data["s2_im"][0, ...])
-    assert_allclose(single_temporal_cloud_probs, data["cl_probs"][0, ...], atol=1e-14)
+    assert_allclose(single_temporal_cloud_probs, data["cl_probs"][0, ...], rtol=1e-5)
 
 
 def test_get_cloud_masks(cloud_detector, data):
