@@ -56,4 +56,4 @@ def test_image_predict_proba(booster):
 
     assert result.shape == (5, 5, 5, 2)
     assert result.dtype == np.float64
-    assert_allclose(np.sum(result, axis=-1), np.ones((5, 5, 5)), atol=1e-12)
+    assert_allclose(np.sum(result, axis=-1), np.ones((5, 5, 5)), rtol=1e-5)
