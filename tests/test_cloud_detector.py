@@ -44,7 +44,7 @@ def test_get_mask_from_prob(cloud_detector, data):
     assert_array_equal(single_temporal_cloud_mask_from_probs, data["cl_mask"][0, ...])
 
 
-def test_get_cloud_probability_maps_invalid(data):
+def test_cloud_detector_failure_wrong_number_of_bands(data):
     """Value error is raised because get_cloud_probability_maps expecting only 10 bands but all 13 are given"""
     cloud_detector = S2PixelCloudDetector(all_bands=False)
     with pytest.raises(ValueError):
