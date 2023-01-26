@@ -49,5 +49,6 @@ def test_get_mask_from_prob(cloud_detector, data):
 
 @pytest.mark.parametrize("cloud_detector", [False], indirect=True)
 def test_get_cloud_probability_maps_invalid(cloud_detector, data):
+    """Value error is raised because get_cloud_probability_maps expecting only 10 bands but all 13 are given"""
     with pytest.raises(ValueError):
         cloud_detector.get_cloud_probability_maps(data["s2_im"])
