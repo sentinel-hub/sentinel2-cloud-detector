@@ -5,8 +5,6 @@ import pytest
 
 from s2cloudless import get_s2_evalscript
 
-pytestmark = pytest.mark.fast
-
 
 @pytest.mark.parametrize("all_bands", [True, False])
 @pytest.mark.parametrize("reflectance", [True, False])

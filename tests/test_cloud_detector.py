@@ -9,8 +9,6 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 from s2cloudless import S2PixelCloudDetector
 
-pytestmark = pytest.mark.fast
-
 
 def test_pixel_cloud_detector():
     data_path = os.path.join("TestInputs", "input_arrays.npz")

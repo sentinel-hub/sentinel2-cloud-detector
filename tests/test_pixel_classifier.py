@@ -12,8 +12,6 @@ import s2cloudless
 from s2cloudless import PixelClassifier
 from s2cloudless.cloud_detector import MODEL_FILENAME
 
-pytestmark = pytest.mark.fast
-
 
 @pytest.fixture(name="booster")
 def booster_fixture():
