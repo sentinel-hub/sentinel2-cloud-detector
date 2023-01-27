@@ -34,7 +34,7 @@ function updateOutputMetadata(scenes, inputMetadata, outputMetadata) {
 """
 
 
-def get_s2_evalscript(all_bands=False, reflectance=False):
+def get_s2_evalscript(all_bands: bool = False, reflectance: bool = False):
     """Provides an evalscript to download Sentinel-2 data
 
     :param all_bands: If `True` the evalscript will use all bands. Otherwise it will use only bands needed for cloud
