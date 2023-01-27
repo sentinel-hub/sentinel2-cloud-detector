@@ -43,6 +43,45 @@ def test_image_predict_not_implemented(booster):
         classifier.image_predict(array)
 
 
+class DummyClassifier:
+    """Predict value of first band."""
+
+    @staticmethod
+    def predict(X):
+        return X[:, 0]
+
+    @staticmethod
+    def predict_proba(X):
+        return X[:, 0]
+
+
+@pytest.mark.parametrize(
+    "test_input, expected",
+    [
+        (np.ones((5, 5, 5, 5)), np.ones((5, 5, 5))),
+        (
+            np.concatenate(
+                [
+                    np.ones((5, 5, 5)),
+                    np.ones((5, 5, 5)) * 2,
+                    np.ones((5, 5, 5)) * 3,
+                    np.ones((5, 5, 5)) * 4,
+                    np.ones((5, 5, 5)) * 5,
+                ]
+            ).reshape((5, 5, 5, 5)),
+            np.concatenate(
+                [np.ones((5, 5)), np.ones((5, 5)) * 2, np.ones((5, 5)) * 3, np.ones((5, 5)) * 4, np.ones((5, 5)) * 5]
+            ).reshape((5, 5, 5)),
+        ),
+    ],
+)
+def test_image_predict(test_input, expected):
+    dummy_classifier = DummyClassifier()
+
+    classifier = PixelClassifier(dummy_classifier)
+    assert_array_equal(classifier.image_predict(test_input), expected)
+
+
 def test_image_predict_proba(booster):
     classifier = PixelClassifier(booster)
     array = np.random.rand(5, 5, 5, 10)
