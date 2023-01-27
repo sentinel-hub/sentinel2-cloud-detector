@@ -22,7 +22,7 @@ def booster_fixture():
 
 @pytest.mark.parametrize("input_array", [np.ones(5), np.ones((5, 5)), np.ones((5, 5, 5))])
 def test_extract_pixels_invalid_input(input_array, booster):
-    """Input array has to be a 4-dimensional."""
+    """Input array has to be 4-dimensional."""
     classifier = PixelClassifier(booster)
 
     with pytest.raises(ValueError):
