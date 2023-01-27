@@ -36,7 +36,7 @@ def test_extract_pixels(booster):
     assert_array_equal(result, np.ones((5 * 5 * 5, 5)))
 
 
-def test_image_predict_not_implemented(booster):
+def test_image_predict_not_implemented_for_booster(booster):
     classifier = PixelClassifier(booster)
     array = np.ones((5, 5, 5, 5))
 
