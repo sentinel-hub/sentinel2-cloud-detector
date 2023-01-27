@@ -1,6 +1,8 @@
 """
 Module implementing pixel-based classifier
 """
+from typing import Any
+
 import numpy as np
 from lightgbm import Booster
 
@@ -24,7 +26,7 @@ class PixelClassifier:
     at: http://scikit-learn.org/stable/developers/contributing.html#apis-of-scikit-learn-objects.
     """
 
-    def __init__(self, classifier):
+    def __init__(self, classifier: Any):
         """
         :param classifier: An instance of trained classifier that will be executed over an entire image
         :type classifier: Booster or object that implements methods predict and predict_proba
@@ -33,7 +35,7 @@ class PixelClassifier:
         self.classifier = classifier
 
     @staticmethod
-    def _check_classifier(classifier):
+    def _check_classifier(classifier: Any) -> None:
         """
         Checks if the classifier is of correct type or if it implements predict and predict_proba methods
         """
@@ -49,7 +51,7 @@ class PixelClassifier:
             raise ValueError("Classifier does not have a predict_proba method!")
 
     @staticmethod
-    def extract_pixels(data):
+    def extract_pixels(data: np.ndarray) -> np.ndarray:
         """Extracts pixels from data array
 
         :param data: Array of images to be classified.
@@ -68,7 +70,7 @@ class PixelClassifier:
         pixels = data.reshape(new_shape)
         return pixels
 
-    def image_predict(self, data, **kwargs):
+    def image_predict(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """
         Predicts class labels for the entire image.
 
@@ -90,7 +92,7 @@ class PixelClassifier:
 
         return predictions.reshape(data.shape[0], data.shape[1], data.shape[2])
 
-    def image_predict_proba(self, data, **kwargs):
+    def image_predict_proba(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """
         Predicts class probabilities for the entire image.
 
