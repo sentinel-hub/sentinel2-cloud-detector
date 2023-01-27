@@ -6,6 +6,7 @@ import os
 import numpy as np
 import pytest
 from lightgbm import Booster
+from numpy.testing import assert_allclose, assert_array_equal
 
 import s2cloudless
 from s2cloudless import PixelClassifier
@@ -36,7 +37,7 @@ def test_extract_pixels(input_array, expected_result, booster):
             classifier.extract_pixels(input_array)
     else:
         result = classifier.extract_pixels(input_array)
-        assert np.array_equal(result, expected_result)
+        assert_array_equal(result, expected_result)
 
 
 def test_image_predict(booster):
@@ -55,4 +56,4 @@ def test_image_predict_proba(booster):
 
     assert result.shape == (5, 5, 5, 2)
     assert result.dtype == np.float64
-    assert np.allclose(np.sum(result, axis=-1), np.ones((5, 5, 5)), atol=1e-12)
+    assert_allclose(np.sum(result, axis=-1), np.ones((5, 5, 5)), rtol=1e-5)
