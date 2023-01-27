@@ -22,6 +22,7 @@ def booster_fixture():
 
 @pytest.mark.parametrize("input_array", [np.ones(5), np.ones((5, 5)), np.ones((5, 5, 5))])
 def test_extract_pixels_invalid_input(input_array, booster):
+    """Input array has to be a 4-dimensional."""
     classifier = PixelClassifier(booster)
 
     with pytest.raises(ValueError):
@@ -44,34 +45,42 @@ def test_image_predict_not_implemented(booster):
 
 
 class DummyClassifier:
-    """Predict value of first band."""
+    """Predict value of second band."""
 
     @staticmethod
     def predict(X):
-        return X[:, 0]
+        return X[:, 1]
 
     @staticmethod
     def predict_proba(X):
-        return X[:, 0]
+        return X[:, 1]
+
+
+ONES = np.ones((4, 8, 3))
+ONES_FOUR = np.ones((5, 4, 8, 3))
+ONES_THREE = np.ones((5, 4, 8))
+ONES_TWO = np.ones((4, 8))
 
 
 @pytest.mark.parametrize(
     "test_input, expected",
     [
-        (np.ones((5, 5, 5, 5)), np.ones((5, 5, 5))),
+        (ONES_FOUR, ONES_THREE),
         (
-            np.concatenate(
-                [
-                    np.ones((5, 5, 5)),
-                    np.ones((5, 5, 5)) * 2,
-                    np.ones((5, 5, 5)) * 3,
-                    np.ones((5, 5, 5)) * 4,
-                    np.ones((5, 5, 5)) * 5,
-                ]
-            ).reshape((5, 5, 5, 5)),
-            np.concatenate(
-                [np.ones((5, 5)), np.ones((5, 5)) * 2, np.ones((5, 5)) * 3, np.ones((5, 5)) * 4, np.ones((5, 5)) * 5]
-            ).reshape((5, 5, 5)),
+            np.concatenate([ONES, ONES * 2, ONES * 3, ONES * 4, ONES * 5]).reshape(ONES_FOUR.shape),
+            np.concatenate([ONES_TWO, ONES_TWO * 2, ONES_TWO * 3, ONES_TWO * 4, ONES_TWO * 5]).reshape(
+                ONES_THREE.shape
+            ),
+        ),
+        (
+            np.concatenate([ONES, ONES * 0.2, ONES * 0.7, ONES * 4, ONES * 0.65]).reshape(ONES_FOUR.shape),
+            np.concatenate([ONES_TWO, ONES_TWO * 0.2, ONES_TWO * 0.7, ONES_TWO * 4, ONES_TWO * 0.65]).reshape(
+                ONES_THREE.shape
+            ),
+        ),
+        (
+            np.moveaxis(np.concatenate([ONES_THREE, ONES_THREE * 5, ONES_THREE * 0.7]).reshape((3, 5, 4, 8)), 0, -1),
+            np.ones(ONES_THREE.shape) * 5,
         ),
     ],
 )
