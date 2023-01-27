@@ -20,24 +20,19 @@ def booster_fixture():
     return Booster(model_file=model_path)
 
 
-@pytest.mark.parametrize(
-    "input_array,expected_result",
-    [
-        (np.ones(5), None),
-        (np.ones((5, 5)), None),
-        (np.ones((5, 5, 5)), None),
-        (np.ones((5, 5, 5, 5)), np.ones((5 * 5 * 5, 5))),
-    ],
-)
-def test_extract_pixels(input_array, expected_result, booster):
+@pytest.mark.parametrize("input_array", [np.ones(5), np.ones((5, 5)), np.ones((5, 5, 5))])
+def test_extract_pixels_invalid_input(input_array, booster):
     classifier = PixelClassifier(booster)
 
-    if expected_result is None:
-        with pytest.raises(ValueError):
-            classifier.extract_pixels(input_array)
-    else:
-        result = classifier.extract_pixels(input_array)
-        assert_array_equal(result, expected_result)
+    with pytest.raises(ValueError):
+        classifier.extract_pixels(input_array)
+
+
+def test_extract_pixels(booster):
+    classifier = PixelClassifier(booster)
+
+    result = classifier.extract_pixels(np.ones((5, 5, 5, 5)))
+    assert_array_equal(result, np.ones((5 * 5 * 5, 5)))
 
 
 def test_image_predict(booster):
