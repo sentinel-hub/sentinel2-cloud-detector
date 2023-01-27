@@ -56,31 +56,35 @@ class DummyClassifier:
         return X[:, 1]
 
 
-ONES = np.ones((4, 8, 3))
-ONES_FOUR = np.ones((5, 4, 8, 3))
-ONES_THREE = np.ones((5, 4, 8))
-ONES_TWO = np.ones((4, 8))
+MIDDLE_TWO = np.ones((4, 8))
+FIRST_THREE = np.ones((5, 4, 8))
+LAST_THREE = np.ones((4, 8, 3))
+ALL_FOUR = np.ones((5, 4, 8, 3))
 
 
 @pytest.mark.parametrize(
     "test_input, expected",
     [
-        (ONES_FOUR, ONES_THREE),
+        (ALL_FOUR, FIRST_THREE),
         (
-            np.concatenate([ONES, ONES * 2, ONES * 3, ONES * 4, ONES * 5]).reshape(ONES_FOUR.shape),
-            np.concatenate([ONES_TWO, ONES_TWO * 2, ONES_TWO * 3, ONES_TWO * 4, ONES_TWO * 5]).reshape(
-                ONES_THREE.shape
+            np.concatenate([LAST_THREE, LAST_THREE * 2, LAST_THREE * 3, LAST_THREE * 4, LAST_THREE * 5]).reshape(
+                ALL_FOUR.shape
+            ),
+            np.concatenate([MIDDLE_TWO, MIDDLE_TWO * 2, MIDDLE_TWO * 3, MIDDLE_TWO * 4, MIDDLE_TWO * 5]).reshape(
+                FIRST_THREE.shape
             ),
         ),
         (
-            np.concatenate([ONES, ONES * 0.2, ONES * 0.7, ONES * 4, ONES * 0.65]).reshape(ONES_FOUR.shape),
-            np.concatenate([ONES_TWO, ONES_TWO * 0.2, ONES_TWO * 0.7, ONES_TWO * 4, ONES_TWO * 0.65]).reshape(
-                ONES_THREE.shape
-            ),
+            np.concatenate(
+                [LAST_THREE, LAST_THREE * 0.2, LAST_THREE * 0.7, LAST_THREE * 0.4, LAST_THREE * 0.65]
+            ).reshape(ALL_FOUR.shape),
+            np.concatenate(
+                [MIDDLE_TWO, MIDDLE_TWO * 0.2, MIDDLE_TWO * 0.7, MIDDLE_TWO * 0.4, MIDDLE_TWO * 0.65]
+            ).reshape(FIRST_THREE.shape),
         ),
         (
-            np.moveaxis(np.concatenate([ONES_THREE, ONES_THREE * 5, ONES_THREE * 0.7]).reshape((3, 5, 4, 8)), 0, -1),
-            np.ones(ONES_THREE.shape) * 5,
+            np.moveaxis(np.concatenate([FIRST_THREE, FIRST_THREE * 5, FIRST_THREE * 0.7]).reshape((3, 5, 4, 8)), 0, -1),
+            np.ones(FIRST_THREE.shape) * 5,
         ),
     ],
 )
