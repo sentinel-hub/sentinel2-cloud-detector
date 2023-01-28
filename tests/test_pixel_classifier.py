@@ -56,35 +56,27 @@ class DummyClassifier:
         return X[:, 1]
 
 
-MIDDLE_TWO = np.ones((4, 8))
-FIRST_THREE = np.ones((5, 4, 8))
-LAST_THREE = np.ones((4, 8, 3))
-ALL_FOUR = np.ones((5, 4, 8, 3))
+X_Y = np.ones((4, 8))
+T_X_Y = np.ones((5, 4, 8))
+X_Y_B = np.ones((4, 8, 3))
+T_X_Y_B = np.ones((5, 4, 8, 3))
 
 
 @pytest.mark.parametrize(
     "test_input, expected",
     [
-        (ALL_FOUR, FIRST_THREE),
+        (T_X_Y_B, T_X_Y),
         (
-            np.concatenate([LAST_THREE, LAST_THREE * 2, LAST_THREE * 3, LAST_THREE * 4, LAST_THREE * 5]).reshape(
-                ALL_FOUR.shape
-            ),
-            np.concatenate([MIDDLE_TWO, MIDDLE_TWO * 2, MIDDLE_TWO * 3, MIDDLE_TWO * 4, MIDDLE_TWO * 5]).reshape(
-                FIRST_THREE.shape
-            ),
+            np.concatenate([X_Y_B, X_Y_B * 2, X_Y_B * 3, X_Y_B * 4, X_Y_B * 5]).reshape(T_X_Y_B.shape),
+            np.concatenate([X_Y, X_Y * 2, X_Y * 3, X_Y * 4, X_Y * 5]).reshape(T_X_Y.shape),
         ),
         (
-            np.concatenate(
-                [LAST_THREE, LAST_THREE * 0.2, LAST_THREE * 0.7, LAST_THREE * 0.4, LAST_THREE * 0.65]
-            ).reshape(ALL_FOUR.shape),
-            np.concatenate(
-                [MIDDLE_TWO, MIDDLE_TWO * 0.2, MIDDLE_TWO * 0.7, MIDDLE_TWO * 0.4, MIDDLE_TWO * 0.65]
-            ).reshape(FIRST_THREE.shape),
+            np.concatenate([X_Y_B, X_Y_B * 0.2, X_Y_B * 0.7, X_Y_B * 0.4, X_Y_B * 0.65]).reshape(T_X_Y_B.shape),
+            np.concatenate([X_Y, X_Y * 0.2, X_Y * 0.7, X_Y * 0.4, X_Y * 0.65]).reshape(T_X_Y.shape),
         ),
         (
-            np.moveaxis(np.concatenate([FIRST_THREE, FIRST_THREE * 5, FIRST_THREE * 0.7]).reshape((3, 5, 4, 8)), 0, -1),
-            np.ones(FIRST_THREE.shape) * 5,
+            np.moveaxis(np.concatenate([T_X_Y, T_X_Y * 5, T_X_Y * 0.7]).reshape((3, 5, 4, 8)), 0, -1),
+            np.ones(T_X_Y.shape) * 5,
         ),
     ],
 )
