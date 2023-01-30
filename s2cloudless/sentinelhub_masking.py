@@ -218,13 +218,13 @@ class CloudMaskRequest:
 
         if self.probability_masks is None:
             if self.bands is None:
-                raise ValueError()
+                raise ValueError("Bands should not be None.")
 
             self.get_data()
             self.probability_masks = self.cloud_detector.get_cloud_probability_maps(self.bands)
 
         if self.data_mask is None:
-            raise ValueError()
+            raise ValueError("Data mask should not be None.")
 
         self.probability_masks[~self.data_mask] = non_valid_value
         return self.probability_masks
@@ -241,7 +241,7 @@ class CloudMaskRequest:
         self.get_probability_masks()
 
         if self.probability_masks is None or self.data_mask is None:
-            raise ValueError()
+            raise ValueError("Both data mask and probability masks should not be None.")
 
         cloud_masks = self.cloud_detector.get_mask_from_prob(self.probability_masks, threshold)
         cloud_masks[~self.data_mask] = non_valid_value
