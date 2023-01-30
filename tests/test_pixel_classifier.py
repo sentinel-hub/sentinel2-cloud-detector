@@ -60,6 +60,8 @@ X_Y = np.ones((4, 8))
 T_X_Y = np.ones((5, 4, 8))
 X_Y_B = np.ones((4, 8, 3))
 T_X_Y_B = np.ones((5, 4, 8, 3))
+T_Y_B = np.ones((5, 8, 3))
+T_Y = np.ones((5, 8))
 
 
 @pytest.mark.parametrize(
@@ -78,6 +80,14 @@ T_X_Y_B = np.ones((5, 4, 8, 3))
             np.moveaxis(np.concatenate([T_X_Y, T_X_Y * 5, T_X_Y * 0.7]).reshape((3, 5, 4, 8)), 0, -1),
             np.ones(T_X_Y.shape) * 5,
         ),
+        (
+            np.moveaxis(np.concatenate([i * T_Y_B for i in range(4)]).reshape((4, 5, 8, 3)), 0, 1),
+            np.moveaxis(np.concatenate([i * T_Y for i in range(4)]).reshape((4, 5, 8)), 0, 1),
+        ),
+        (
+            np.array([[[[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]] ]]),
+            np.array([[[2, 5], [2, 5], [2, 5] ]]),
+        )
     ],
 )
 def test_image_predict(test_input, expected):
