@@ -39,12 +39,9 @@ def get_s2_evalscript(all_bands: bool = False, reflectance: bool = False) -> str
 
     :param all_bands: If `True` the evalscript will use all bands. Otherwise it will use only bands needed for cloud
         masking
-    :type all_bands: bool
     :param reflectance: If `True` the evalscript will define reflectance values. Otherwise it will define digital
         numbers together with normalization factors to rescale them.
-    :type reflectance: bool
     :return: An evalscript
-    :rtype: str
     """
     bands = S2_BANDS
     if not all_bands:
