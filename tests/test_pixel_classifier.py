@@ -85,9 +85,9 @@ T_Y = np.ones((5, 8))
             np.moveaxis(np.concatenate([i * T_Y for i in range(4)]).reshape((4, 5, 8)), 0, 1),
         ),
         (
-            np.array([[[[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]] ]]),
-            np.array([[[2, 5], [2, 5], [2, 5] ]]),
-        )
+            np.array([[[[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]]]]),
+            np.array([[[2, 5], [2, 5], [2, 5]]]),
+        ),
     ],
 )
 def test_image_predict(test_input, expected):
