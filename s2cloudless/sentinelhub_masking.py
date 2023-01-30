@@ -202,9 +202,6 @@ class CloudMaskRequest:
         norm_factors = [response["userdata.json"]["norm_factor"] for response in responses]
         del responses
 
-        if data is None:
-            raise ValueError("Data should not be None.")
-
         self.bands = data[..., :-1]
         self.data_mask = data[..., -1] != 0
 
