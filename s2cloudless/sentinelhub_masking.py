@@ -17,10 +17,13 @@ from sentinelhub import (
     filter_times,
     parse_time_interval,
 )
+from sentinelhub.types import RawTimeIntervalType, RawTimeType
 
 from s2cloudless.cloud_detector import S2PixelCloudDetector
 
 from .utils import get_s2_evalscript
+
+RawTimeIterableType = Union[RawTimeType, RawTimeIntervalType, List[RawTimeType], List[RawTimeIntervalType]]
 
 
 class NoDataAvailableException(RuntimeError):
@@ -36,15 +39,7 @@ class CloudMaskRequest:
         self,
         cloud_detector: S2PixelCloudDetector,
         bbox: BBox,
-        time: Union[
-            str,
-            Tuple[str, str],
-            dt.date,
-            Tuple[dt.date, dt.date],
-            dt.datetime,
-            Tuple[dt.datetime, dt.datetime],
-            List[Tuple[dt.datetime, dt.datetime]],
-        ],
+        time: RawTimeIterableType,
         *,
         size: Optional[Tuple[int, int]] = None,
         resolution: Optional[Tuple[float, float]] = None,
@@ -93,9 +88,11 @@ class CloudMaskRequest:
         """Provide a number of acquisitions (i.e. the same as number of cloud masks)"""
         return len(self.api_requests)
 
-    def __iter__(self):
+    def __iter__(self) -> zip[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
         """Iterate over probability masks, cloud masks and bands"""
         cloud_masks = self.get_cloud_masks()
+        if self.probability_masks is None or self.bands is None:
+            raise ValueError("Both probability masks and bands should not be None")
         return zip(self.probability_masks, cloud_masks, self.bands)
 
     def _prepare_api_requests(self) -> List[SentinelHubRequest]:
@@ -136,7 +133,7 @@ class CloudMaskRequest:
         if self.timestamps is None:
             if isinstance(self.time, list):
                 if all(isinstance(timestamp, dt.datetime) for timestamp in self.time):
-                    self.timestamps = self.time
+                    self.timestamps = self.time  # type:  ignore[assignment]
             else:
                 time_interval = parse_time_interval(self.time)
                 self.timestamps = self._get_timestamps_from_catalog(time_interval)
@@ -146,8 +143,8 @@ class CloudMaskRequest:
 
             self.timestamps = filter_times(self.timestamps, self.time_difference)
 
-            if not self.timestamps:
-                raise NoDataAvailableException("There are no Sentinel-2 images available for given parameters")
+        if not self.timestamps:
+            raise NoDataAvailableException("There are no Sentinel-2 images available for given parameters")
 
         return self.timestamps
 
@@ -246,12 +243,10 @@ class CloudMaskRequest:
         :return: Binary cloud masks of shape `(times, height, width)` and `dtype=numpy.int8`
         """
         # pylint: disable=invalid-unary-operand-type
-        self.get_probability_masks()
 
-        if self.probability_masks is None or self.data_mask is None:
-            raise ValueError("Both data mask and probability masks should not be None.")
-
-        cloud_masks = self.cloud_detector.get_mask_from_prob(self.probability_masks, threshold)
+        cloud_masks = self.cloud_detector.get_mask_from_prob(self.get_probability_masks(), threshold)
+        if self.data_mask is None:
+            raise ValueError("Data mask should not be None.")
         cloud_masks[~self.data_mask] = non_valid_value
 
         return cloud_masks
