@@ -43,7 +43,7 @@ class CloudMaskRequest:
             Tuple[dt.date, dt.date],
             dt.datetime,
             Tuple[dt.datetime, dt.datetime],
-            List[dt.datetime],
+            List[Tuple[dt.datetime, dt.datetime]],
         ],
         *,
         size: Optional[Tuple[int, int]] = None,
@@ -206,7 +206,7 @@ class CloudMaskRequest:
         del responses
 
         if data is None:
-            raise ValueError()
+            raise ValueError("Data should not be None.")
 
         self.bands = data[..., :-1]
         self.data_mask = data[..., -1] != 0
