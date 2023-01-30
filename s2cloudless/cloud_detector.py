@@ -2,6 +2,7 @@
 Module for making pixel-based classification on Sentinel-2 L1C imagery
 """
 import os
+from typing import Any, Optional
 
 import numpy as np
 from lightgbm import Booster
@@ -31,22 +32,24 @@ class S2PixelCloudDetector:
 
     :param threshold: Cloud probability threshold. All pixels with cloud probability above
                       threshold value are masked as cloudy pixels. Default is 0.4.
-    :type threshold: float
     :param all_bands: Flag specifying that input images will consists of all 13 Sentinel-2 bands.
-    :type all_bands: bool
     :param average_over: Size of the disk in pixels for performing convolution (averaging probability
                          over pixels). Value 0 means do not perform this post-processing step.
                          Default is 1.
-    :type average_over: int
     :param dilation_size: Size of the disk in pixels for performing dilation. Value 0 means do not perform
                           this post-processing step. Default is 1.
-    :type dilation_size: int
     :param model_filename: Location of the serialised model. If None the default model provided with the
                            package is loaded.
-    :type model_filename: str or None
     """
 
-    def __init__(self, threshold=0.4, all_bands=False, average_over=1, dilation_size=1, model_filename=None):
+    def __init__(
+        self,
+        threshold: float = 0.4,
+        all_bands: bool = False,
+        average_over: int = 1,
+        dilation_size: int = 1,
+        model_filename: Optional[str] = None,
+    ):
         self.threshold = threshold
         self.all_bands = all_bands
         self.average_over = average_over
@@ -57,7 +60,7 @@ class S2PixelCloudDetector:
             model_filename = os.path.join(package_dir, "models", MODEL_FILENAME)
         self.model_filename = model_filename
 
-        self._classifier = None
+        self._classifier: Optional[Any] = None
 
         if average_over > 0:
             self.conv_filter = disk(average_over) / np.sum(disk(average_over))
@@ -66,7 +69,7 @@ class S2PixelCloudDetector:
             self.dilation_filter = disk(dilation_size)
 
     @property
-    def classifier(self):
+    def classifier(self) -> Any:
         """
         Provides a classifier object. It also loads it if it hasn't been loaded yet. This way the classifier is loaded
         only when it is actually required.
@@ -76,7 +79,7 @@ class S2PixelCloudDetector:
 
         return self._classifier
 
-    def get_cloud_probability_maps(self, data, **kwargs):
+    def get_cloud_probability_maps(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """
         Runs the cloud detection on the input images (dimension n_images x n x m x 10
         or n_images x n x m x 13) and returns an array of cloud probability maps (dimension
@@ -84,10 +87,8 @@ class S2PixelCloudDetector:
         values close to 1 indicate pixels covered with clouds.
 
         :param data: A stack of Sentinel-2 images with all required bands in the correct order
-        :type data: numpy array (shape n_images x n x m x 10 or n x m x 13)
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
-        :return: cloud probability map
-        :rtype: numpy array (shape n_images x n x m)
+        :return: cloud probability map (shape n_images x n x m)
         """
         is_single_temporal = data.ndim == 3
         if is_single_temporal:
@@ -110,7 +111,7 @@ class S2PixelCloudDetector:
             return proba.squeeze(axis=0)
         return proba
 
-    def get_cloud_masks(self, data, **kwargs):
+    def get_cloud_masks(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """
         Runs the cloud detection on the input images (dimension n_images x n x m x 10
         or n_images x n x m x 13) and returns the raster cloud mask (dimension n_images x n x m).
@@ -118,27 +119,22 @@ class S2PixelCloudDetector:
         equal to 1 indicate pixels classified as clouds.
 
         :param data: A stack of Sentinel-2 images with all required bands in the correct order
-        :type data: numpy array (shape n_images x n x m x 10 or n x m x 13)
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
-        :return: raster cloud mask
-        :rtype: numpy array (shape n_images x n x m)
+        :return: raster cloud mask (shape n_images x n x m)
         """
         cloud_probs = self.get_cloud_probability_maps(data, **kwargs)
         cloud_masks = self.get_mask_from_prob(cloud_probs)
 
         return cloud_masks
 
-    def get_mask_from_prob(self, cloud_probs, threshold=None):
+    def get_mask_from_prob(self, cloud_probs: np.ndarray, threshold: Optional[float] = None) -> np.ndarray:
         """
         Returns cloud mask by applying morphological operations -- convolution and dilation --
         to input cloud probabilities.
 
         :param cloud_probs: cloud probability map
-        :type cloud_probs: numpy array of cloud probabilities (n_images, n, m) or (n, m)
         :param threshold: A float from [0,1] specifying threshold
-        :type threshold: float
         :return: raster cloud mask
-        :rtype: numpy array (n_images, n, m) or (n, m)
         """
 
         is_single_temporal = cloud_probs.ndim == 2

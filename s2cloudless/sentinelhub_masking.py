@@ -2,10 +2,12 @@
 Module using sentinelhub-py to interact with Sentinel Hub services
 """
 import datetime as dt
+from typing import Any, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 
 from sentinelhub import (
+    BBox,
     DataCollection,
     MimeType,
     SentinelHubCatalog,
@@ -15,8 +17,13 @@ from sentinelhub import (
     filter_times,
     parse_time_interval,
 )
+from sentinelhub.types import RawTimeIntervalType, RawTimeType
+
+from s2cloudless.cloud_detector import S2PixelCloudDetector
 
 from .utils import get_s2_evalscript
+
+RawTimeIterableType = Union[RawTimeType, RawTimeIntervalType, List[RawTimeType], List[RawTimeIntervalType]]
 
 
 class NoDataAvailableException(RuntimeError):
@@ -30,41 +37,30 @@ class CloudMaskRequest:
 
     def __init__(
         self,
-        cloud_detector,
-        bbox,
-        time,
+        cloud_detector: S2PixelCloudDetector,
+        bbox: BBox,
+        time: RawTimeIterableType,
         *,
-        size=None,
-        resolution=None,
-        maxcc=None,
-        time_difference=None,
-        data_folder=None,
-        data_collection=DataCollection.SENTINEL2_L1C,
-        config=None,
-        **kwargs,
+        size: Optional[Tuple[int, int]] = None,
+        resolution: Optional[Tuple[float, float]] = None,
+        maxcc: Optional[float] = None,
+        time_difference: Optional[dt.timedelta] = None,
+        data_folder: Optional[str] = None,
+        data_collection: DataCollection = DataCollection.SENTINEL2_L1C,
+        config: Optional[SHConfig] = None,
+        **kwargs: Any,
     ):
         """
         :param cloud_detector: An instance of a cloud detector object
-        :type cloud_detector: S2PixelCloudDetector
         :param bbox: Bounding box describing the area of interest.
-        :type bbox: sentinelhub.BBox
         :param time: A time interval of the request.
-        :type time: str or (str, str) or datetime.date or (datetime.date, datetime.date) or datetime.datetime or
-            (datetime.datetime, datetime.datetime)
         :param size: Size of the image.
-        :type size: Tuple[int, int]
         :param resolution: Resolution of the image. It has to be in units compatible with the given CRS.
-        :type resolution: Tuple[float, float]
         :param maxcc: Maximum accepted cloud coverage of an image. Float between 0.0 and 1.0. Default is 1.0.
-        :type maxcc: float or None
         :param time_difference: A minimal time difference between timestamps for which data will be requested.
-        :type time_difference: datetime.timedelta or None
         :param data_folder: A location of the directory where downloaded data will be saved.
-        :type data_folder: str or None
         :param data_collection: A Sentinel-2 L1C collection from where data will be collected.
-        :type data_collection: DataCollection
         :param config: An instance of config class to override parameters from the saved configuration.
-        :type config: SHConfig or None
         :param kwargs: Additional arguments to be passed to `SentinelHubRequest.input_data`, e.g. `upsampling` or
             `downsampling`.
         """
@@ -81,23 +77,25 @@ class CloudMaskRequest:
         self.config.sh_base_url = self.data_collection.service_url
         self.kwargs = kwargs
 
-        self.timestamps = None
-        self.bands = None
-        self.data_mask = None
-        self.probability_masks = None
+        self.timestamps: Optional[List[dt.datetime]] = None
+        self.bands: Optional[np.ndarray] = None
+        self.data_mask: Optional[np.ndarray] = None
+        self.probability_masks: Optional[np.ndarray] = None
 
         self.api_requests = self._prepare_api_requests()
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Provide a number of acquisitions (i.e. the same as number of cloud masks)"""
         return len(self.api_requests)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
         """Iterate over probability masks, cloud masks and bands"""
         cloud_masks = self.get_cloud_masks()
-        return zip(self.probability_masks, cloud_masks, self.bands)
+        if self.probability_masks is None or self.bands is None:
+            raise ValueError("Both probability masks and bands should not be None")
+        return iter(zip(self.probability_masks, cloud_masks, self.bands))
 
-    def _prepare_api_requests(self):
+    def _prepare_api_requests(self) -> List[SentinelHubRequest]:
         """Prepare a list of Process API requests defining what data will be downloaded"""
         timestamps = self.get_timestamps()
         evalscript = get_s2_evalscript(all_bands=self.cloud_detector.all_bands, reflectance=False)
@@ -127,18 +125,21 @@ class CloudMaskRequest:
 
         return api_requests
 
-    def get_timestamps(self):
+    def get_timestamps(self) -> List[dt.datetime]:
         """Get the list of timestamps from within date range for which data of the bbox is available.
 
         :return: A list of timestamps
-        :rtype: list(datetime.datetime)
         """
         if self.timestamps is None:
-            if isinstance(self.time, list) and all(isinstance(timestamp, dt.datetime) for timestamp in self.time):
-                self.timestamps = self.time
+            if isinstance(self.time, list):
+                if all(isinstance(timestamp, dt.datetime) for timestamp in self.time):
+                    self.timestamps = self.time  # type:  ignore[assignment]
             else:
                 time_interval = parse_time_interval(self.time)
                 self.timestamps = self._get_timestamps_from_catalog(time_interval)
+
+            if self.timestamps is None:
+                raise ValueError("There are no available timestamps.")
 
             self.timestamps = filter_times(self.timestamps, self.time_difference)
 
@@ -147,7 +148,9 @@ class CloudMaskRequest:
 
         return self.timestamps
 
-    def _get_timestamps_from_catalog(self, time_interval):
+    def _get_timestamps_from_catalog(
+        self, time_interval: Tuple[Optional[dt.datetime], Optional[dt.datetime]]
+    ) -> List[dt.datetime]:
         """Collects a list of timestamps from Sentinel Hub Catalog API"""
         catalog = SentinelHubCatalog(config=self.config)
 
@@ -169,27 +172,25 @@ class CloudMaskRequest:
         )
         return search_iterator.get_timestamps()
 
-    def get_data(self):
+    def get_data(self) -> Optional[np.ndarray]:
         """Returns downloaded bands
 
         :return: numpy array of shape `(times, height, width, bands)`
-        :rtype: numpy.ndarray
         """
         if self.bands is None:
             self._download_bands_and_valid_data_mask()
         return self.bands
 
-    def get_data_mask(self):
+    def get_data_mask(self) -> Optional[np.ndarray]:
         """Returns valid data mask.
 
         :return: numpy array of shape `(times, height, width)`
-        :rtype: numpy.ndarray
         """
         if self.data_mask is None:
             self._download_bands_and_valid_data_mask()
         return self.data_mask
 
-    def _download_bands_and_valid_data_mask(self):
+    def _download_bands_and_valid_data_mask(self) -> None:
         """Downloads band data and valid mask. Sets parameters self.bands, self.data_mask"""
         download_requests = [api_request.download_list[0] for api_request in self.api_requests]
         client = SentinelHubDownloadClient(config=self.config)
@@ -207,39 +208,42 @@ class CloudMaskRequest:
         normalized_bands = (np.round(array * factor, 4) for array, factor in zip(self.bands, norm_factors))
         self.bands = np.asarray(list(normalized_bands), dtype=np.float32)
 
-    def get_probability_masks(self, non_valid_value=0):
+    def get_probability_masks(self, non_valid_value: int = 0) -> np.ndarray:
         """
         Get probability maps of areas for each available date. The pixels without valid data are assigned
         non_valid_value.
 
         :param non_valid_value: Value to be assigned to non valid data pixels
-        :type non_valid_value: float
         :return: Probability map of shape `(times, height, width)` and `dtype=numpy.float64`
-        :rtype: numpy.ndarray
         """
         # pylint: disable=invalid-unary-operand-type
+
         if self.probability_masks is None:
             self.get_data()
+            if self.bands is None:
+                raise ValueError("Bands should not be None.")
+
             self.probability_masks = self.cloud_detector.get_cloud_probability_maps(self.bands)
+
+        if self.data_mask is None:
+            raise ValueError("Data mask should not be None.")
 
         self.probability_masks[~self.data_mask] = non_valid_value
         return self.probability_masks
 
-    def get_cloud_masks(self, threshold=None, non_valid_value=0):
+    def get_cloud_masks(self, threshold: Optional[float] = None, non_valid_value: int = 0) -> np.ndarray:
         """The binary cloud mask is computed on the fly. Be cautious. The pixels without valid data are assigned
         non_valid_value.
 
         :param threshold: A float from [0,1] specifying threshold
-        :type threshold: float
         :param non_valid_value: Value which will be assigned to pixels without valid data
-        :type non_valid_value: int in range `[-254, 255]`
         :return: Binary cloud masks of shape `(times, height, width)` and `dtype=numpy.int8`
-        :rtype: numpy.ndarray
         """
         # pylint: disable=invalid-unary-operand-type
-        self.get_probability_masks()
 
-        cloud_masks = self.cloud_detector.get_mask_from_prob(self.probability_masks, threshold)
+        cloud_masks = self.cloud_detector.get_mask_from_prob(self.get_probability_masks(), threshold)
+        if self.data_mask is None:
+            raise ValueError("Data mask should not be None.")
         cloud_masks[~self.data_mask] = non_valid_value
 
         return cloud_masks
