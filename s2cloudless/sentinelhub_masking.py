@@ -37,7 +37,13 @@ class CloudMaskRequest:
         cloud_detector: S2PixelCloudDetector,
         bbox: BBox,
         time: Union[
-            str, Tuple[str, str], dt.date, Tuple[dt.date, dt.date], dt.datetime, Tuple[dt.datetime, dt.datetime]
+            str,
+            Tuple[str, str],
+            dt.date,
+            Tuple[dt.date, dt.date],
+            dt.datetime,
+            Tuple[dt.datetime, dt.datetime],
+            List[dt.datetime],
         ],
         *,
         size: Optional[Tuple[int, int]] = None,
@@ -128,18 +134,20 @@ class CloudMaskRequest:
         :return: A list of timestamps
         """
         if self.timestamps is None:
-            if isinstance(self.time, (tuple, list)):
-                list_time = list(self.time)
-                if all(isinstance(timestamp, dt.datetime) for timestamp in list_time):
-                    self.timestamps = list_time  # type: ignore[assignment]
+            if isinstance(self.time, list):
+                if all(isinstance(timestamp, dt.datetime) for timestamp in self.time):
+                    self.timestamps = self.time
             else:
                 time_interval = parse_time_interval(self.time)
                 self.timestamps = self._get_timestamps_from_catalog(time_interval)
 
             if self.timestamps is None:
-                raise NoDataAvailableException("There are no Sentinel-2 images available for given parameters")
+                raise ValueError("There are no available timestamps.")
 
             self.timestamps = filter_times(self.timestamps, self.time_difference)
+
+            if not self.timestamps:
+                raise NoDataAvailableException("There are no Sentinel-2 images available for given parameters")
 
         return self.timestamps
 
@@ -197,7 +205,7 @@ class CloudMaskRequest:
         norm_factors = [response["userdata.json"]["norm_factor"] for response in responses]
         del responses
 
-        if not data:
+        if data is None:
             raise ValueError()
 
         self.bands = data[..., :-1]
@@ -217,10 +225,10 @@ class CloudMaskRequest:
         # pylint: disable=invalid-unary-operand-type
 
         if self.probability_masks is None:
+            self.get_data()
             if self.bands is None:
                 raise ValueError("Bands should not be None.")
 
-            self.get_data()
             self.probability_masks = self.cloud_detector.get_cloud_probability_maps(self.bands)
 
         if self.data_mask is None:
