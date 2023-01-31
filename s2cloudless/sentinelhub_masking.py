@@ -84,6 +84,8 @@ class CloudMaskRequest:
 
         self.api_requests = self._prepare_api_requests()
 
+        self.bands, self.data_mask = self._download_bands_and_valid_data_mask()
+
     def __len__(self) -> int:
         """Provide a number of acquisitions (i.e. the same as number of cloud masks)"""
         return len(self.api_requests)
@@ -172,25 +174,25 @@ class CloudMaskRequest:
         )
         return search_iterator.get_timestamps()
 
-    def get_data(self) -> Optional[np.ndarray]:
-        """Returns downloaded bands
+    # def get_data(self) -> Optional[np.ndarray]:
+    #     """Returns downloaded bands
+    #
+    #     :return: numpy array of shape `(times, height, width, bands)`
+    #     """
+    #     if self.bands is None:
+    #         self._download_bands_and_valid_data_mask()
+    #     return self.bands
+    #
+    # def get_data_mask(self) -> Optional[np.ndarray]:
+    #     """Returns valid data mask.
+    #
+    #     :return: numpy array of shape `(times, height, width)`
+    #     """
+    #     if self.data_mask is None:
+    #         self._download_bands_and_valid_data_mask()
+    #     return self.data_mask
 
-        :return: numpy array of shape `(times, height, width, bands)`
-        """
-        if self.bands is None:
-            self._download_bands_and_valid_data_mask()
-        return self.bands
-
-    def get_data_mask(self) -> Optional[np.ndarray]:
-        """Returns valid data mask.
-
-        :return: numpy array of shape `(times, height, width)`
-        """
-        if self.data_mask is None:
-            self._download_bands_and_valid_data_mask()
-        return self.data_mask
-
-    def _download_bands_and_valid_data_mask(self) -> None:
+    def _download_bands_and_valid_data_mask(self) -> Tuple[np.ndarray, np.ndarray]:
         """Downloads band data and valid mask. Sets parameters self.bands, self.data_mask"""
         download_requests = [api_request.download_list[0] for api_request in self.api_requests]
         client = SentinelHubDownloadClient(config=self.config)
@@ -202,11 +204,12 @@ class CloudMaskRequest:
         norm_factors = [response["userdata.json"]["norm_factor"] for response in responses]
         del responses
 
-        self.bands = data[..., :-1]
-        self.data_mask = data[..., -1] != 0
+        bands = data[..., :-1]
+        data_mask = data[..., -1] != 0
 
-        normalized_bands = (np.round(array * factor, 4) for array, factor in zip(self.bands, norm_factors))
-        self.bands = np.asarray(list(normalized_bands), dtype=np.float32)
+        normalized_bands = (np.round(array * factor, 4) for array, factor in zip(bands, norm_factors))
+        bands = np.asarray(list(normalized_bands), dtype=np.float32)
+        return bands, data_mask
 
     def get_probability_masks(self, non_valid_value: int = 0) -> np.ndarray:
         """
@@ -217,19 +220,18 @@ class CloudMaskRequest:
         :return: Probability map of shape `(times, height, width)` and `dtype=numpy.float64`
         """
         # pylint: disable=invalid-unary-operand-type
-
-        if self.probability_masks is None:
-            self.get_data()
+        probability_masks = self.probability_masks
+        if probability_masks is None:
             if self.bands is None:
                 raise ValueError("Bands should not be None.")
 
-            self.probability_masks = self.cloud_detector.get_cloud_probability_maps(self.bands)
+            probability_masks = self.cloud_detector.get_cloud_probability_maps(self.bands)
 
         if self.data_mask is None:
             raise ValueError("Data mask should not be None.")
 
-        self.probability_masks[~self.data_mask] = non_valid_value
-        return self.probability_masks
+        probability_masks[~self.data_mask] = non_valid_value
+        return probability_masks
 
     def get_cloud_masks(self, threshold: Optional[float] = None, non_valid_value: int = 0) -> np.ndarray:
         """The binary cloud mask is computed on the fly. Be cautious. The pixels without valid data are assigned
