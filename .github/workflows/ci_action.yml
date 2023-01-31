@@ -89,7 +89,7 @@ jobs:
           pip install -e .[DEV]
 
       - name: Run full tests and code coverage
-        if: ${{ matrix.python-version == '3.9' && github.event_name == 'push'}}
+        if: matrix.python-version == '3.9'
         run: |
           sentinelhub.config \
             --sh_client_id "${{ secrets.SH_CLIENT_ID }}" \
