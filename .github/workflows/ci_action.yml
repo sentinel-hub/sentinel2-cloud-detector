@@ -1,16 +1,19 @@
 name: build
 
 on:
+  pull_request:
   push:
+    branches:
+      - "master"
+      - "develop"
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "5 0 * * *"
 
 env:
   # The only way to simulate if-else statement
   CHECKOUT_BRANCH: ${{ github.event_name == 'push' && github.ref || 'develop' }}
 
 jobs:
-
   check-code-black-isort-flake8:
     runs-on: ubuntu-latest
     steps:
@@ -66,10 +69,14 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - '3.7'
-          - '3.8'
-          - '3.9'
-          - '3.10'
+          - "3.7"
+          - "3.9"
+          - "3.10"
+        include:
+          # A flag marks whether full or partial tests should be run
+          # We don't run integration tests on pull requests from outside repos, because they don't have secrets
+          - python-version: "3.8"
+            full_test_suite: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
@@ -89,7 +96,7 @@ jobs:
           pip install -e .[DEV]
 
       - name: Run full tests and code coverage
-        if: matrix.python-version == '3.9'
+        if: ${{ matrix.full_test_suite }}
         run: |
           sentinelhub.config \
             --sh_client_id "${{ secrets.SH_CLIENT_ID }}" \
@@ -97,12 +104,12 @@ jobs:
           pytest --cov --cov-report=term --cov-report=xml
 
       - name: Run reduced tests
-        if: matrix.python-version != '3.9'
+        if: ${{ !matrix.full_test_suite }}
         run: |
           pytest -m "not sh_integration"
 
       - name: Upload code coverage
-        if: ${{ matrix.python-version == '3.9' && github.event_name == 'push'}}
+        if: ${{ matrix.full_test_suite && github.event_name == 'push' }}
         uses: codecov/codecov-action@v2
         with:
           files: coverage.xml
