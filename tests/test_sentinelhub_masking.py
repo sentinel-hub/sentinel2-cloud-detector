@@ -3,6 +3,7 @@ Tests for sentinelhub_masking.py module
 """
 import datetime as dt
 import os
+from typing import Any, Dict, Tuple
 
 import numpy as np
 import pytest
@@ -15,11 +16,11 @@ from s2cloudless import CloudMaskRequest, NoDataAvailableException, S2PixelCloud
 pytestmark = pytest.mark.sh_integration
 
 BBOX1 = BBox([-90.9216499, 14.4190528, -90.8186531, 14.5520163], crs=CRS.WGS84)
-BBOX2 = BBox(((624024.4, 8214123.1), (661906.6, 8276948.7)), crs=CRS.UTM_38S)
+BBOX2 = BBox(((624024.4, 8214123.1), (661906.6, 8276948.7)), crs=CRS(32738))
 
 
 @pytest.fixture(name="config")
-def config_fixture():
+def config_fixture() -> SHConfig:
     config = SHConfig()
 
     for param in config.get_params():
@@ -103,15 +104,23 @@ def config_fixture():
     ],
     ids=["basic", "resolution", "maxcc,downsampling"],
 )
-def test_cloud_mask_request(input_params, mask_shape, clm_stats, clp_stats, config):
+def test_cloud_mask_request(
+    input_params: Dict[str, Any],
+    mask_shape: Tuple[int, int, int],
+    clm_stats: Dict[str, float],
+    clp_stats: Dict[str, float],
+    config: SHConfig,
+) -> None:
     """Integration tests for CloudMasKRequest class that interacts with Sentinel Hub service"""
     request = CloudMaskRequest(config=config, **input_params)
 
     masks = request.get_cloud_masks()
-    assert_statistics_match(masks, exp_shape=mask_shape, exp_dtype=np.int8, **clm_stats, abs_delta=1e-4)
+    assert_statistics_match(masks, exp_shape=mask_shape, exp_dtype=np.dtype(np.int8), **clm_stats, abs_delta=1e-4)
 
     prob_masks = request.get_probability_masks(non_valid_value=-50)
-    assert_statistics_match(prob_masks, exp_shape=mask_shape, exp_dtype=np.float64, **clp_stats, abs_delta=1e-4)
+    assert_statistics_match(
+        prob_masks, exp_shape=mask_shape, exp_dtype=np.dtype(np.float64), **clp_stats, abs_delta=1e-4
+    )
 
     timestamps = request.get_timestamps()
     assert isinstance(timestamps, list)
@@ -128,7 +137,7 @@ def test_cloud_mask_request(input_params, mask_shape, clm_stats, clp_stats, conf
     assert data_mask.dtype == bool
 
 
-def test_no_data_available_request(config):
+def test_no_data_available_request(config: SHConfig) -> None:
     """Tests an exception raised by CloudMaskRequest"""
     cloud_detector = S2PixelCloudDetector()
     with pytest.raises(NoDataAvailableException):

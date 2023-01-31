@@ -14,14 +14,14 @@ from s2cloudless.cloud_detector import MODEL_FILENAME
 
 
 @pytest.fixture(name="booster")
-def booster_fixture():
+def booster_fixture() -> Booster:
     package_path = os.path.dirname(s2cloudless.__file__)
     model_path = os.path.join(package_path, "models", MODEL_FILENAME)
     return Booster(model_file=model_path)
 
 
 @pytest.mark.parametrize("input_array", [np.ones(5), np.ones((5, 5)), np.ones((5, 5, 5))])
-def test_extract_pixels_invalid_input(input_array, booster):
+def test_extract_pixels_invalid_input(input_array: np.ndarray, booster: Booster) -> None:
     """Input array has to be 4-dimensional."""
     classifier = PixelClassifier(booster)
 
@@ -29,14 +29,14 @@ def test_extract_pixels_invalid_input(input_array, booster):
         classifier.extract_pixels(input_array)
 
 
-def test_extract_pixels(booster):
+def test_extract_pixels(booster: Booster) -> None:
     classifier = PixelClassifier(booster)
 
     result = classifier.extract_pixels(np.ones((5, 5, 5, 5)))
     assert_array_equal(result, np.ones((5 * 5 * 5, 5)))
 
 
-def test_image_predict_not_implemented_for_booster(booster):
+def test_image_predict_not_implemented_for_booster(booster: Booster) -> None:
     classifier = PixelClassifier(booster)
     array = np.ones((5, 5, 5, 5))
 
@@ -48,11 +48,11 @@ class DummyClassifier:
     """Predict value of second band."""
 
     @staticmethod
-    def predict(X):
+    def predict(X: np.ndarray) -> np.ndarray:
         return X[:, 1]
 
     @staticmethod
-    def predict_proba(X):
+    def predict_proba(X: np.ndarray) -> np.ndarray:
         return X[:, 1]
 
 
@@ -90,14 +90,14 @@ T_Y = np.ones((5, 8))
         ),
     ],
 )
-def test_image_predict(test_input, expected):
+def test_image_predict(test_input: np.ndarray, expected: np.ndarray) -> None:
     dummy_classifier = DummyClassifier()
 
     classifier = PixelClassifier(dummy_classifier)
     assert_array_equal(classifier.image_predict(test_input), expected)
 
 
-def test_image_predict_proba(booster):
+def test_image_predict_proba(booster: Booster) -> None:
     classifier = PixelClassifier(booster)
     array = np.random.rand(5, 5, 5, 10)
 
