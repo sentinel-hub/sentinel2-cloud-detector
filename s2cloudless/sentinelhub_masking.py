@@ -2,7 +2,7 @@
 Module using sentinelhub-py to interact with Sentinel Hub services
 """
 import datetime as dt
-from typing import Any, Iterator, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -82,13 +82,6 @@ class CloudMaskRequest:
     def __len__(self) -> int:
         """Provide a number of acquisitions (i.e. the same as number of cloud masks)"""
         return len(self.api_requests)
-
-    def __iter__(self) -> Iterator[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
-        """Iterate over probability masks, cloud masks and bands"""
-        cloud_masks = self.get_cloud_masks()
-        bands, _ = self._download_bands_and_valid_data_mask()
-        probability_masks = self.get_probability_masks()
-        return iter(zip(probability_masks, cloud_masks, bands))
 
     def _prepare_api_requests(self) -> List[SentinelHubRequest]:
         """Prepare a list of Process API requests defining what data will be downloaded"""
