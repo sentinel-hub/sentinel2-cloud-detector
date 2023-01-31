@@ -187,6 +187,7 @@ class CloudMaskRequest:
         non_valid_value.
 
         :param non_valid_value: Value to be assigned to non valid data pixels
+        :param return_data_mask: Flag to return additional data.
         :return: Probability map of shape `(times, height, width)` and `dtype=numpy.float64`
         """
         # pylint: disable=invalid-unary-operand-type
