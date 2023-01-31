@@ -23,7 +23,7 @@ from s2cloudless.cloud_detector import S2PixelCloudDetector
 
 from .utils import get_s2_evalscript
 
-RawTimeIterableType = Union[RawTimeType, RawTimeIntervalType, List[RawTimeType], List[RawTimeIntervalType]]
+RawTimeIterableType = Union[RawTimeType, RawTimeIntervalType, List[RawTimeIntervalType]]
 
 
 class NoDataAvailableException(RuntimeError):
@@ -125,7 +125,7 @@ class CloudMaskRequest:
 
         :return: A list of timestamps
         """
-
+        timestamps: Optional[List[dt.datetime]] = None
         if isinstance(self.time, list):
             if all(isinstance(timestamp, dt.datetime) for timestamp in self.time):
                 timestamps = self.time  # type:  ignore[assignment]
