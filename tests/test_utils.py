@@ -8,7 +8,7 @@ from s2cloudless import get_s2_evalscript
 
 @pytest.mark.parametrize("all_bands", [True, False])
 @pytest.mark.parametrize("reflectance", [True, False])
-def test_get_s2_evalscript(all_bands, reflectance):
+def test_get_s2_evalscript(all_bands: bool, reflectance: bool) -> None:
     evalscript = get_s2_evalscript(all_bands=all_bands, reflectance=reflectance)
 
     assert isinstance(evalscript, str)
