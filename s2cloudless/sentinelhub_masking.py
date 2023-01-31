@@ -179,9 +179,7 @@ class CloudMaskRequest:
         bands = np.asarray(list(normalized_bands), dtype=np.float32)
         return bands, data_mask
 
-    def get_probability_masks(
-        self, non_valid_value: int = 0, return_data_mask: bool = False
-    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    def get_probability_masks(self, non_valid_value: int = 0) -> np.ndarray:
         """
         Get probability maps of areas for each available date. The pixels without valid data are assigned
         non_valid_value.
@@ -196,7 +194,7 @@ class CloudMaskRequest:
         probability_masks = self.cloud_detector.get_cloud_probability_maps(bands)
 
         probability_masks[~data_mask] = non_valid_value
-        return probability_masks if not return_data_mask else (probability_masks, data_mask)
+        return probability_masks
 
     def get_cloud_masks(self, threshold: Optional[float] = None, non_valid_value: int = 0) -> np.ndarray:
         """The binary cloud mask is computed on the fly. Be cautious. The pixels without valid data are assigned
@@ -208,8 +206,4 @@ class CloudMaskRequest:
         """
         # pylint: disable=invalid-unary-operand-type
 
-        probability_masks, data_mask = self.get_probability_masks(return_data_mask=True)
-        cloud_masks = self.cloud_detector.get_mask_from_prob(probability_masks, threshold)
-        cloud_masks[~data_mask] = non_valid_value
-
-        return cloud_masks
+        return self.cloud_detector.get_mask_from_prob(self.get_probability_masks(non_valid_value), threshold)
