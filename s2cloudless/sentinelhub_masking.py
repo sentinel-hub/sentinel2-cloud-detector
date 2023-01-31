@@ -77,14 +77,7 @@ class CloudMaskRequest:
         self.config.sh_base_url = self.data_collection.service_url
         self.kwargs = kwargs
 
-        self.timestamps: Optional[List[dt.datetime]] = None
-        self.bands: Optional[np.ndarray] = None
-        self.data_mask: Optional[np.ndarray] = None
-        self.probability_masks: Optional[np.ndarray] = None
-
         self.api_requests = self._prepare_api_requests()
-
-        self.bands, self.data_mask = self._download_bands_and_valid_data_mask()
 
     def __len__(self) -> int:
         """Provide a number of acquisitions (i.e. the same as number of cloud masks)"""
@@ -93,9 +86,9 @@ class CloudMaskRequest:
     def __iter__(self) -> Iterator[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
         """Iterate over probability masks, cloud masks and bands"""
         cloud_masks = self.get_cloud_masks()
-        if self.probability_masks is None or self.bands is None:
-            raise ValueError("Both probability masks and bands should not be None")
-        return iter(zip(self.probability_masks, cloud_masks, self.bands))
+        bands, _ = self._download_bands_and_valid_data_mask()
+        probability_masks = self.get_probability_masks()
+        return iter(zip(probability_masks, cloud_masks, bands))
 
     def _prepare_api_requests(self) -> List[SentinelHubRequest]:
         """Prepare a list of Process API requests defining what data will be downloaded"""
@@ -132,23 +125,23 @@ class CloudMaskRequest:
 
         :return: A list of timestamps
         """
-        if self.timestamps is None:
-            if isinstance(self.time, list):
-                if all(isinstance(timestamp, dt.datetime) for timestamp in self.time):
-                    self.timestamps = self.time  # type:  ignore[assignment]
-            else:
-                time_interval = parse_time_interval(self.time)
-                self.timestamps = self._get_timestamps_from_catalog(time_interval)
 
-            if self.timestamps is None:
-                raise ValueError("There are no available timestamps.")
+        if isinstance(self.time, list):
+            if all(isinstance(timestamp, dt.datetime) for timestamp in self.time):
+                timestamps = self.time  # type:  ignore[assignment]
+        else:
+            time_interval = parse_time_interval(self.time)
+            timestamps = self._get_timestamps_from_catalog(time_interval)
 
-            self.timestamps = filter_times(self.timestamps, self.time_difference)
+        if timestamps is None:
+            raise ValueError("There are no available timestamps.")
 
-        if not self.timestamps:
+        timestamps = filter_times(timestamps, self.time_difference)
+
+        if not timestamps:
             raise NoDataAvailableException("There are no Sentinel-2 images available for given parameters")
 
-        return self.timestamps
+        return timestamps
 
     def _get_timestamps_from_catalog(
         self, time_interval: Tuple[Optional[dt.datetime], Optional[dt.datetime]]
@@ -174,26 +167,8 @@ class CloudMaskRequest:
         )
         return search_iterator.get_timestamps()
 
-    # def get_data(self) -> Optional[np.ndarray]:
-    #     """Returns downloaded bands
-    #
-    #     :return: numpy array of shape `(times, height, width, bands)`
-    #     """
-    #     if self.bands is None:
-    #         self._download_bands_and_valid_data_mask()
-    #     return self.bands
-    #
-    # def get_data_mask(self) -> Optional[np.ndarray]:
-    #     """Returns valid data mask.
-    #
-    #     :return: numpy array of shape `(times, height, width)`
-    #     """
-    #     if self.data_mask is None:
-    #         self._download_bands_and_valid_data_mask()
-    #     return self.data_mask
-
     def _download_bands_and_valid_data_mask(self) -> Tuple[np.ndarray, np.ndarray]:
-        """Downloads band data and valid mask. Sets parameters self.bands, self.data_mask"""
+        """Downloads band data and valid mask. Return parameters bands, data_mask"""
         download_requests = [api_request.download_list[0] for api_request in self.api_requests]
         client = SentinelHubDownloadClient(config=self.config)
 
@@ -220,17 +195,11 @@ class CloudMaskRequest:
         :return: Probability map of shape `(times, height, width)` and `dtype=numpy.float64`
         """
         # pylint: disable=invalid-unary-operand-type
-        probability_masks = self.probability_masks
-        if probability_masks is None:
-            if self.bands is None:
-                raise ValueError("Bands should not be None.")
 
-            probability_masks = self.cloud_detector.get_cloud_probability_maps(self.bands)
+        bands, data_mask = self._download_bands_and_valid_data_mask()
+        probability_masks = self.cloud_detector.get_cloud_probability_maps(bands)
 
-        if self.data_mask is None:
-            raise ValueError("Data mask should not be None.")
-
-        probability_masks[~self.data_mask] = non_valid_value
+        probability_masks[~data_mask] = non_valid_value
         return probability_masks
 
     def get_cloud_masks(self, threshold: Optional[float] = None, non_valid_value: int = 0) -> np.ndarray:
@@ -244,8 +213,8 @@ class CloudMaskRequest:
         # pylint: disable=invalid-unary-operand-type
 
         cloud_masks = self.cloud_detector.get_mask_from_prob(self.get_probability_masks(), threshold)
-        if self.data_mask is None:
-            raise ValueError("Data mask should not be None.")
-        cloud_masks[~self.data_mask] = non_valid_value
+        _, data_mask = self._download_bands_and_valid_data_mask()
+
+        cloud_masks[~data_mask] = non_valid_value
 
         return cloud_masks

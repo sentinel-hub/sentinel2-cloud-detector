@@ -127,12 +127,11 @@ def test_cloud_mask_request(
     assert len(timestamps) == mask_shape[0]
     assert all(isinstance(timestamp, dt.datetime) for timestamp in timestamps)
 
-    data = request.bands
+    data, data_mask = request._download_bands_and_valid_data_mask()
     band_num = 13 if request.cloud_detector.all_bands else 10
     assert data.shape == mask_shape + (band_num,)
     assert data.dtype == np.float32
 
-    data_mask = request.data_mask
     assert data_mask.shape == mask_shape
     assert data_mask.dtype == bool
 
