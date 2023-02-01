@@ -30,25 +30,21 @@ class PixelClassifier:
         """
         :param classifier: An instance of trained classifier that will be executed over an entire image
         """
-        self.classifier = self._check_classifier(classifier)
+        self._check_classifier(classifier)
+        self.classifier = classifier
 
     @staticmethod
-    def _check_classifier(classifier: Any) -> Any:
+    def _check_classifier(classifier: Any) -> None:
         """
         Checks if the classifier is of correct type or if it implements predict and predict_proba methods
         """
         if isinstance(classifier, Booster):
-            return classifier
+            return
 
         predict = getattr(classifier, "predict", None)
-        if not callable(predict):
-            raise ValueError("Classifier does not have a predict method!")
-
         predict_proba = getattr(classifier, "predict_proba", None)
-        if not callable(predict_proba):
-            raise ValueError("Classifier does not have a predict_proba method!")
-
-        return classifier
+        if not callable(predict) or not callable(predict_proba):
+            raise ValueError("Classifier does not have a predict or predict_proba method!")
 
     @staticmethod
     def extract_pixels(data: np.ndarray) -> np.ndarray:
@@ -64,7 +60,7 @@ class PixelClassifier:
                 "[n_images, n_pixels_y, n_pixels_x, n_bands]"
             )
 
-        return data.reshape(data.shape[0] * data.shape[1] * data.shape[2], data.shape[3])
+        return data.reshape((-1, data.shape[3]))
 
     def image_predict(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """
@@ -102,4 +98,4 @@ class PixelClassifier:
         else:
             probabilities = self.classifier.predict_proba(pixels, **kwargs)
 
-        return probabilities.reshape(*data.shape[0:3], probabilities.shape[1])
+        return probabilities.reshape(*data.shape[0:3], probabilities.shape[-1])
