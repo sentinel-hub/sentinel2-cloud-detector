@@ -41,10 +41,10 @@ class PixelClassifier:
         if isinstance(classifier, Booster):
             return
 
-        predict = getattr(classifier, "predict", None)
-        predict_proba = getattr(classifier, "predict_proba", None)
-        if not callable(predict) or not callable(predict_proba):
-            raise ValueError("Classifier does not have a predict or predict_proba method!")
+        for method_name in ("predict", "predict_proba"):
+            method = getattr(classifier, method_name, None)
+            if not callable(method):
+                raise ValueError(f"Classifier does not have a {method_name} method!")
 
     @staticmethod
     def extract_pixels(data: np.ndarray) -> np.ndarray:
