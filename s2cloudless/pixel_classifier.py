@@ -70,14 +70,13 @@ class PixelClassifier:
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: raster classification map
         """
-        pixels = self.extract_pixels(data)
-
         if isinstance(self.classifier, Booster):
             raise NotImplementedError(
                 "An instance of lightgbm.Booster can only return prediction probabilities, "
                 "use PixelClassifier.image_predict_proba instead"
             )
 
+        pixels = self.extract_pixels(data)
         predictions = self.classifier.predict(pixels, **kwargs)
 
         return predictions.reshape(*data.shape[0:3])
