@@ -1,6 +1,4 @@
-"""
-Module with utilities
-"""
+"""Module providing various utilities."""
 
 S2_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12"]
 MODEL_BAND_IDS = [0, 1, 3, 4, 7, 8, 9, 10, 11, 12]
@@ -35,13 +33,13 @@ function updateOutputMetadata(scenes, inputMetadata, outputMetadata) {
 
 
 def get_s2_evalscript(all_bands: bool = False, reflectance: bool = False) -> str:
-    """Provides an evalscript to download Sentinel-2 data
+    """Provides an `s2cloudless` suited evalscript to download Sentinel-2 data
 
     :param all_bands: If `True` the evalscript will use all bands. Otherwise it will use only bands needed for cloud
-        masking
-    :param reflectance: If `True` the evalscript will define reflectance values. Otherwise it will define digital
+        masking.
+    :param reflectance: If `True` the evalscript will define reflectance values. Otherwise it will use digital
         numbers together with normalization factors to rescale them.
-    :return: An evalscript
+    :return: An evalscript to be used with the `sentinelhub` package.
     """
     bands = S2_BANDS
     if not all_bands:
