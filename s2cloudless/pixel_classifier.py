@@ -1,8 +1,19 @@
 """Module for pixel-based classifiers."""
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 from lightgbm import Booster
+from typing_extensions import Protocol
+
+
+class ClassifierType(Protocol):
+    """Defines the necessary classifier interface."""
+
+    def predict(self, X: np.ndarray) -> np.ndarray:  # pylint: disable=missing-function-docstring,invalid-name
+        ...
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:  # pylint: disable=missing-function-docstring,invalid-name
+        ...
 
 
 class PixelClassifier:
@@ -16,7 +27,7 @@ class PixelClassifier:
     http://scikit-learn.org/stable/developers/contributing.html#apis-of-scikit-learn-objects
     """
 
-    def __init__(self, classifier: Any):
+    def __init__(self, classifier: Union[Booster, ClassifierType]):
         """
         :param classifier: An instance of trained classifier to be executed over images
         """
@@ -24,7 +35,7 @@ class PixelClassifier:
         self.classifier = classifier
 
     @staticmethod
-    def _check_classifier(classifier: Any) -> None:
+    def _check_classifier(classifier: Union[Booster, ClassifierType]) -> None:
         """Checks if the classifier is suitable."""
         if isinstance(classifier, Booster):
             return
