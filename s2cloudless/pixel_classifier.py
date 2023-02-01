@@ -57,8 +57,8 @@ class PixelClassifier:
         """
         if isinstance(self.classifier, Booster):
             raise NotImplementedError(
-                "An instance of lightgbm.Booster can only return prediction probabilities, "
-                "use PixelClassifier.image_predict_proba instead"
+                "An instance of `lightgbm.Booster` can only return prediction probabilities, use the"
+                "`PixelClassifier.image_predict_proba` instead."
             )
 
         pixels = self.extract_pixels(data)
