@@ -5,21 +5,26 @@ from setuptools import find_packages, setup
 
 
 def get_version():
-    for line in open(os.path.join(os.path.dirname(__file__), "s2cloudless", "__init__.py")):
-        if line.find("__version__") >= 0:
-            version = line.split("=")[1].strip()
-            version = version.strip('"').strip("'")
-            return version
+    path = os.path.join(os.path.dirname(__file__), "s2cloudless", "__init__.py")
+    with open(path) as version_file:
+        for line in version_file:
+            if line.find("__version__") >= 0:
+                version = line.split("=")[1].strip()
+                return version.strip('"').strip("'")
+
+    raise ValueError(f"Version not found in {path}")
 
 
 def get_long_description():
     return io.open("README.md", encoding="utf-8").read()
 
 
-def parse_requirements(file):
-    return sorted(
-        set(line.partition("#")[0].strip() for line in open(os.path.join(os.path.dirname(__file__), file))) - set("")
-    )
+def parse_requirements(filename: str):
+    required_packages = []
+    with open(os.path.join(os.path.dirname(__file__), filename)) as req_file:
+        for line in req_file:
+            required_packages.append(line.strip())
+    return required_packages
 
 
 setup(
