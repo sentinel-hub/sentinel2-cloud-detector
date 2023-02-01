@@ -41,13 +41,10 @@ class PixelClassifier:
         if isinstance(classifier, Booster):
             return
 
-        predict = getattr(classifier, "predict", None)
-        if not callable(predict):
-            raise ValueError("Classifier does not have a predict method!")
-
-        predict_proba = getattr(classifier, "predict_proba", None)
-        if not callable(predict_proba):
-            raise ValueError("Classifier does not have a predict_proba method!")
+        for method_name in ("predict", "predict_proba"):
+            method = getattr(classifier, method_name, None)
+            if not callable(method):
+                raise ValueError(f"Classifier does not have a {method_name} method!")
 
     @staticmethod
     def extract_pixels(data: np.ndarray) -> np.ndarray:
@@ -63,9 +60,7 @@ class PixelClassifier:
                 "[n_images, n_pixels_y, n_pixels_x, n_bands]"
             )
 
-        new_shape = data.shape[0] * data.shape[1] * data.shape[2], data.shape[3]
-        pixels = data.reshape(new_shape)
-        return pixels
+        return data.reshape((-1, data.shape[3]))
 
     def image_predict(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """
@@ -85,7 +80,7 @@ class PixelClassifier:
 
         predictions = self.classifier.predict(pixels, **kwargs)
 
-        return predictions.reshape(data.shape[0], data.shape[1], data.shape[2])
+        return predictions.reshape(*data.shape[0:3])
 
     def image_predict_proba(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """
@@ -103,4 +98,4 @@ class PixelClassifier:
         else:
             probabilities = self.classifier.predict_proba(pixels, **kwargs)
 
-        return probabilities.reshape(data.shape[0], data.shape[1], data.shape[2], probabilities.shape[1])
+        return probabilities.reshape(*data.shape[0:3], probabilities.shape[-1])
