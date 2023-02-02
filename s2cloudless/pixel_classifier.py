@@ -61,7 +61,7 @@ class PixelClassifier:
         pixels = data.reshape((-1, data.shape[-1]))
         predictions = self.classifier.predict(pixels, **kwargs)
 
-        return predictions.reshape(*data.shape[0:-1])
+        return predictions.reshape(*data.shape[:-1])
 
     def image_predict_proba(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """Predicts class probabilities for the entire image.
@@ -78,4 +78,4 @@ class PixelClassifier:
         else:
             probabilities = self.classifier.predict_proba(pixels, **kwargs)
 
-        return probabilities.reshape(*data.shape[0:-1], probabilities.shape[-1])
+        return probabilities.reshape(*data.shape[:-1], probabilities.shape[-1])
