@@ -120,6 +120,10 @@ class S2PixelCloudDetector:
         """
         threshold = self.threshold if threshold is None else threshold
 
+        is_single_temporal = cloud_probs.ndim == 2
+        if is_single_temporal:
+            cloud_probs = cloud_probs[np.newaxis, ...]
+
         if self.average_over:
             cloud_masks = np.asarray(
                 [convolve(cloud_prob, self.conv_filter) > threshold for cloud_prob in cloud_probs], dtype=np.int8
@@ -132,4 +136,4 @@ class S2PixelCloudDetector:
                 [dilation(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks], dtype=np.int8
             )
 
-        return cloud_masks
+        return cloud_masks.squeeze(axis=0) if is_single_temporal else cloud_masks
