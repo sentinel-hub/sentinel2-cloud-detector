@@ -68,8 +68,8 @@ class PixelClassifier:
 
         :param data: Array of images of shape `(N, height, width, bands)` to be classified.
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
-        :return: Classification probability map of shape `(N, height, width, n_classes) where n_classes is 2 for cloud
-        predictors
+        :return: Classification probability map of shape `(N, height, width, n_classes)` where `n_classes` is 2 for cloud
+            predictors
         """
         pixels = data.reshape((-1, data.shape[-1]))
 
