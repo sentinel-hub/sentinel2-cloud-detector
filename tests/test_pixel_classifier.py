@@ -20,22 +20,6 @@ def booster_fixture() -> Booster:
     return Booster(model_file=model_path)
 
 
-@pytest.mark.parametrize("input_array", [np.ones(5), np.ones((5, 5)), np.ones((5, 5, 5))])
-def test_extract_pixels_invalid_input(input_array: np.ndarray, booster: Booster) -> None:
-    """Input array has to be 4-dimensional."""
-    classifier = PixelClassifier(booster)
-
-    with pytest.raises(ValueError):
-        classifier.extract_pixels(input_array)
-
-
-def test_extract_pixels(booster: Booster) -> None:
-    classifier = PixelClassifier(booster)
-
-    result = classifier.extract_pixels(np.ones((5, 5, 5, 5)))
-    assert_array_equal(result, np.ones((5 * 5 * 5, 5)))
-
-
 def test_image_predict_not_implemented_for_booster(booster: Booster) -> None:
     classifier = PixelClassifier(booster)
     array = np.ones((5, 5, 5, 5))

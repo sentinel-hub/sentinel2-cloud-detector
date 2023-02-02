@@ -1,6 +1,4 @@
-"""
-This module lists all externally useful classes and functions
-"""
+"""Main module of `s2cloudless`."""
 
 from .cloud_detector import S2PixelCloudDetector
 from .pixel_classifier import PixelClassifier
