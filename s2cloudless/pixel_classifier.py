@@ -45,20 +45,6 @@ class PixelClassifier:
             if not callable(method):
                 raise ValueError(f"Classifier does not have a {method_name} method!")
 
-    @staticmethod
-    def extract_pixels(data: np.ndarray) -> np.ndarray:
-        """Reshapes a multidimensional numpy array of shape `(N, height, width, bands)` into an array of pixel-data
-        of shape `(N * height * width, bands)`.
-
-        :param data: Array of images to be classified.
-        :return: Reshaped 2D array
-        :raises: ValueError is input array has wrong dimensions
-        """
-        if len(data.shape) != 4:
-            raise ValueError("Input has to be a 4-dimensional array of shape `(N, height, width, bands)`")
-
-        return data.reshape((-1, data.shape[3]))
-
     def image_predict(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """Predicts class labels for the entire image.
 
@@ -72,10 +58,10 @@ class PixelClassifier:
                 "`PixelClassifier.image_predict_proba` instead."
             )
 
-        pixels = self.extract_pixels(data)
+        pixels = data.reshape((-1, data.shape[-1]))
         predictions = self.classifier.predict(pixels, **kwargs)
 
-        return predictions.reshape(*data.shape[0:3])
+        return predictions.reshape(*data.shape[0:-1])
 
     def image_predict_proba(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """Predicts class probabilities for the entire image.
@@ -84,7 +70,7 @@ class PixelClassifier:
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: Classification probability map of shape `(N, height, width, bands)`
         """
-        pixels = self.extract_pixels(data)
+        pixels = data.reshape((-1, data.shape[-1]))
 
         if isinstance(self.classifier, Booster):
             probabilities = self.classifier.predict(pixels, **kwargs)
@@ -92,4 +78,4 @@ class PixelClassifier:
         else:
             probabilities = self.classifier.predict_proba(pixels, **kwargs)
 
-        return probabilities.reshape(*data.shape[0:3], probabilities.shape[-1])
+        return probabilities.reshape(*data.shape[0:-1], probabilities.shape[-1])
