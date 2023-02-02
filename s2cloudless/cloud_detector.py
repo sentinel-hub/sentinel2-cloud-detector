@@ -83,10 +83,6 @@ class S2PixelCloudDetector:
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: cloud probability map of shape `(N, height, width)`
         """
-        is_single_temporal = data.ndim == 3
-        if is_single_temporal:
-            data = data[np.newaxis, ...]
-
         band_num = data.shape[-1]
         exp_bands = 13 if self.all_bands else len(MODEL_BAND_IDS)
         if band_num != exp_bands:
@@ -97,8 +93,6 @@ class S2PixelCloudDetector:
 
         proba = self.classifier.image_predict_proba(data, **kwargs)[..., 1]
 
-        if is_single_temporal:
-            return proba.squeeze(axis=0)
         return proba
 
     def get_cloud_masks(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
@@ -124,11 +118,6 @@ class S2PixelCloudDetector:
         :param threshold: A float from [0,1] specifying the probability threshold for mask creation
         :return: cloud mask of shape `(N, height, width)`
         """
-
-        is_single_temporal = cloud_probs.ndim == 2
-        if is_single_temporal:
-            cloud_probs = cloud_probs[np.newaxis, ...]
-
         threshold = self.threshold if threshold is None else threshold
 
         if self.average_over:
@@ -142,8 +131,5 @@ class S2PixelCloudDetector:
             cloud_masks = np.asarray(
                 [dilation(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks], dtype=np.int8
             )
-
-        if is_single_temporal:
-            return cloud_masks.squeeze(axis=0)
 
         return cloud_masks
