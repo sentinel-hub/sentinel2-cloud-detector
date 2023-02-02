@@ -1,11 +1,21 @@
 """
 Plotting utilities for example notebooks
 """
+from typing import Any, Optional, Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.pyplot import Axes
 
 
-def plot_image(image=None, mask=None, ax=None, factor=3.5 / 255, clip_range=(0, 1), **kwargs):
+def plot_image(
+    image: Optional[np.ndarray] = None,
+    mask: Optional[np.ndarray] = None,
+    ax: Optional[Axes] = None,
+    factor: float = 3.5 / 255,
+    clip_range: Tuple[float, float] = (0, 1),
+    **kwargs: Any
+) -> None:
     """Utility function for plotting RGB images and masks."""
     if ax is None:
         _, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 15))
@@ -27,7 +37,7 @@ def plot_image(image=None, mask=None, ax=None, factor=3.5 / 255, clip_range=(0, 
         ax.imshow(cloud_image)
 
 
-def plot_probabilities(image, proba, factor=3.5 / 255):
+def plot_probabilities(image: np.ndarray, proba: np.ndarray, factor: float = 3.5 / 255) -> None:
     """Utility function for plotting a RGB image and its cloud probability map next to each other."""
     plt.figure(figsize=(15, 15))
     ax = plt.subplot(1, 2, 1)
