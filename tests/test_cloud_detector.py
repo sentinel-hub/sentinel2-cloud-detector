@@ -17,12 +17,12 @@ def cloud_detector_fixture() -> S2PixelCloudDetector:
     return S2PixelCloudDetector(all_bands=True)
 
 
-@pytest.mark.parametrize("data", [np.array([]), np.ones((5,)), np.ones((5, 3)), np.ones((5, 4, 5))])
-@pytest.mark.parametrize("function", ["get_cloud_masks", "get_cloud_probability_maps"])
-def test_incorrect_input(cloud_detector: S2PixelCloudDetector, function: str, data: np.ndarray) -> None:
+@pytest.mark.parametrize("data", [np.array([]), np.ones((5,)), np.ones((5, 3, 2, 1, 3)), np.ones((5, 4, 5))])
+@pytest.mark.parametrize("method", ["get_cloud_masks", "get_cloud_probability_maps"])
+def test_incorrect_dimension_input_fails(cloud_detector: S2PixelCloudDetector, method: str, data: np.ndarray) -> None:
+    test_method = getattr(cloud_detector, method)
     with pytest.raises(ValueError):
-        test_function = getattr(cloud_detector, function)
-        test_function(data)
+        test_method(data)
 
 
 @pytest.mark.parametrize("data, result", [(DATA["s2_im"], DATA["cl_probs"])])
