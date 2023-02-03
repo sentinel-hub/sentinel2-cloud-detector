@@ -56,7 +56,7 @@ class S2PixelCloudDetector:
             model_filename = os.path.join(package_dir, "models", MODEL_FILENAME)
         self.model_filename = model_filename
 
-        self._classifier: Optional[Any] = None
+        self._classifier: Optional[PixelClassifier] = None
 
         if average_over is not None and average_over > 0:
             self.conv_filter = disk(average_over) / np.sum(disk(average_over))
@@ -65,7 +65,7 @@ class S2PixelCloudDetector:
             self.dilation_filter = disk(dilation_size)
 
     @property
-    def classifier(self) -> Any:
+    def classifier(self) -> PixelClassifier:
         """Provides a classifier object by utilizing lazy-loading to avoid multiple IO operations."""
         if self._classifier is None:
             self._classifier = PixelClassifier(Booster(model_file=self.model_filename))
@@ -73,7 +73,7 @@ class S2PixelCloudDetector:
         return self._classifier
 
     @staticmethod
-    def _check_data_dimension(data: np.ndarray, correct_dimension) -> None:
+    def _check_data_dimension(data: np.ndarray, correct_dimension: int) -> None:
         if data.ndim != correct_dimension:
             msg = (
                 f"Data should be of dimension {correct_dimension}. Single-image data can be adjusted by using"
