@@ -73,12 +73,13 @@ class S2PixelCloudDetector:
         return self._classifier
 
     @staticmethod
-    def _check_data_shape(data: np.ndarray) -> None:
-        if data.ndim != 4:
-            raise ValueError(
-                "Data should be of dimension 4, if singel-temporal data is used please extend input with: ",
-                "`new_data` = data[np.newaxis, ...].",
+    def _check_data_dimension(data: np.ndarray, correct_dimension) -> None:
+        if data.ndim != correct_dimension:
+            msg = (
+                f"Data should be of dimension {correct_dimension}. Single-image data can be adjusted by using"
+                " `data[np.newaxis, ...]`."
             )
+            raise ValueError(msg)
 
     def get_cloud_probability_maps(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """
@@ -92,7 +93,7 @@ class S2PixelCloudDetector:
         :return: cloud probability map of shape `(N, height, width)`
         """
 
-        self._check_data_shape(data)
+        self._check_data_dimension(data, 4)
         band_num = data.shape[-1]
         exp_bands = 13 if self.all_bands else len(MODEL_BAND_IDS)
         if band_num != exp_bands:
@@ -115,7 +116,7 @@ class S2PixelCloudDetector:
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: raster cloud mask of shape `(N, height, width)`
         """
-        self._check_data_shape(data)
+        self._check_data_dimension(data, 4)
         cloud_probs = self.get_cloud_probability_maps(data, **kwargs)
         cloud_masks = self.get_mask_from_prob(cloud_probs)
 
@@ -129,6 +130,7 @@ class S2PixelCloudDetector:
         :param threshold: A float from [0,1] specifying the probability threshold for mask creation
         :return: cloud mask of shape `(N, height, width)`
         """
+        self._check_data_dimension(cloud_probs, 3)
         threshold = self.threshold if threshold is None else threshold
 
         if self.average_over:
