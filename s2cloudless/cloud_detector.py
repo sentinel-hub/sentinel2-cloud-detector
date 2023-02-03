@@ -72,6 +72,14 @@ class S2PixelCloudDetector:
 
         return self._classifier
 
+    @staticmethod
+    def _check_data_shape(data: np.ndarray) -> None:
+        if data.ndim != 4:
+            raise ValueError(
+                "Data should be of dimension 4, if singel-temporal data is used please extend input with: ",
+                "`new_data` = data[np.newaxis, ...].",
+            )
+
     def get_cloud_probability_maps(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """
         Runs the cloud detection on the input images of shape `(N, height, width, 13)` (all 13 bands) or
@@ -83,6 +91,8 @@ class S2PixelCloudDetector:
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: cloud probability map of shape `(N, height, width)`
         """
+
+        self._check_data_shape(data)
         band_num = data.shape[-1]
         exp_bands = 13 if self.all_bands else len(MODEL_BAND_IDS)
         if band_num != exp_bands:
@@ -105,6 +115,7 @@ class S2PixelCloudDetector:
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: raster cloud mask of shape `(N, height, width)`
         """
+        self._check_data_shape(data)
         cloud_probs = self.get_cloud_probability_maps(data, **kwargs)
         cloud_masks = self.get_mask_from_prob(cloud_probs)
 
@@ -120,10 +131,6 @@ class S2PixelCloudDetector:
         """
         threshold = self.threshold if threshold is None else threshold
 
-        is_single_image = cloud_probs.ndim == 2
-        if is_single_image:
-            cloud_probs = cloud_probs[np.newaxis, ...]
-
         if self.average_over:
             cloud_masks = np.asarray(
                 [convolve(cloud_prob, self.conv_filter) > threshold for cloud_prob in cloud_probs], dtype=np.int8
@@ -136,4 +143,4 @@ class S2PixelCloudDetector:
                 [dilation(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks], dtype=np.int8
             )
 
-        return cloud_masks.squeeze(axis=0) if is_single_image else cloud_masks
+        return cloud_masks
