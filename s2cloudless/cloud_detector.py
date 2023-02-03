@@ -56,7 +56,7 @@ class S2PixelCloudDetector:
             model_filename = os.path.join(package_dir, "models", MODEL_FILENAME)
         self.model_filename = model_filename
 
-        self._classifier: Optional[Any] = None
+        self._classifier: Optional[PixelClassifier] = None
 
         if average_over is not None and average_over > 0:
             self.conv_filter = disk(average_over) / np.sum(disk(average_over))
@@ -65,12 +65,21 @@ class S2PixelCloudDetector:
             self.dilation_filter = disk(dilation_size)
 
     @property
-    def classifier(self) -> Any:
+    def classifier(self) -> PixelClassifier:
         """Provides a classifier object by utilizing lazy-loading to avoid multiple IO operations."""
         if self._classifier is None:
             self._classifier = PixelClassifier(Booster(model_file=self.model_filename))
 
         return self._classifier
+
+    @staticmethod
+    def _check_data_dimension(data: np.ndarray, correct_dimension: int) -> None:
+        if data.ndim != correct_dimension:
+            msg = (
+                f"Data should be of dimension {correct_dimension}. Single-image data can be adjusted by using"
+                " `data[np.newaxis, ...]`."
+            )
+            raise ValueError(msg)
 
     def get_cloud_probability_maps(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
         """
@@ -83,6 +92,8 @@ class S2PixelCloudDetector:
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: cloud probability map of shape `(N, height, width)`
         """
+
+        self._check_data_dimension(data, 4)
         band_num = data.shape[-1]
         exp_bands = 13 if self.all_bands else len(MODEL_BAND_IDS)
         if band_num != exp_bands:
@@ -105,6 +116,7 @@ class S2PixelCloudDetector:
         :param kwargs: Any keyword arguments that will be passed to the classifier's prediction method
         :return: raster cloud mask of shape `(N, height, width)`
         """
+        self._check_data_dimension(data, 4)
         cloud_probs = self.get_cloud_probability_maps(data, **kwargs)
         cloud_masks = self.get_mask_from_prob(cloud_probs)
 
@@ -118,11 +130,8 @@ class S2PixelCloudDetector:
         :param threshold: A float from [0,1] specifying the probability threshold for mask creation
         :return: cloud mask of shape `(N, height, width)`
         """
+        self._check_data_dimension(cloud_probs, 3)
         threshold = self.threshold if threshold is None else threshold
-
-        is_single_image = cloud_probs.ndim == 2
-        if is_single_image:
-            cloud_probs = cloud_probs[np.newaxis, ...]
 
         if self.average_over:
             cloud_masks = np.asarray(
@@ -136,4 +145,4 @@ class S2PixelCloudDetector:
                 [dilation(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks], dtype=np.int8
             )
 
-        return cloud_masks.squeeze(axis=0) if is_single_image else cloud_masks
+        return cloud_masks

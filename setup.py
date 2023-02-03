@@ -36,7 +36,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/sentinel-hub/sentinel2-cloud-detector",
     author="Sinergise EO research team",
-    author_email="anze.zupanc@sinergise.com",
+    author_email="eoresearch@sinergise.com",
     license="CC BY-SA 4.0",
     packages=find_packages(),
     include_package_data=True,
