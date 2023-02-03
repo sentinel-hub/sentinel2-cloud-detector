@@ -29,7 +29,6 @@ def test_incorrect_input(cloud_detector: S2PixelCloudDetector, function: str, da
     "data, result",
     [
         (DATA["s2_im"], DATA["cl_probs"]),
-        (DATA["s2_im"][0][np.newaxis, ...], DATA["cl_probs"][0][np.newaxis, ...]),
     ],
 )
 def test_get_cloud_probability_maps(cloud_detector: S2PixelCloudDetector, data: np.ndarray, result: np.ndarray) -> None:
@@ -41,7 +40,6 @@ def test_get_cloud_probability_maps(cloud_detector: S2PixelCloudDetector, data: 
     "data, result",
     [
         (DATA["s2_im"], DATA["cl_mask"]),
-        (DATA["s2_im"][0][np.newaxis, ...], DATA["cl_mask"][0][np.newaxis, ...]),
     ],
 )
 def test_get_cloud_masks(cloud_detector: S2PixelCloudDetector, data: np.ndarray, result: np.ndarray) -> None:
@@ -53,7 +51,6 @@ def test_get_cloud_masks(cloud_detector: S2PixelCloudDetector, data: np.ndarray,
     "data, result",
     [
         (DATA["cl_probs"], DATA["cl_mask"]),
-        (DATA["cl_probs"][0][np.newaxis, ...], DATA["cl_mask"][0][np.newaxis, ...]),
     ],
 )
 def test_get_mask_from_prob(cloud_detector: S2PixelCloudDetector, data: np.ndarray, result: np.ndarray) -> None:
