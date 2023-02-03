@@ -25,34 +25,19 @@ def test_incorrect_input(cloud_detector: S2PixelCloudDetector, function: str, da
         test_function(data)
 
 
-@pytest.mark.parametrize(
-    "data, result",
-    [
-        (DATA["s2_im"], DATA["cl_probs"]),
-    ],
-)
+@pytest.mark.parametrize("data, result", [(DATA["s2_im"], DATA["cl_probs"])])
 def test_get_cloud_probability_maps(cloud_detector: S2PixelCloudDetector, data: np.ndarray, result: np.ndarray) -> None:
     cloud_probs = cloud_detector.get_cloud_probability_maps(data)
     assert_allclose(cloud_probs, result, rtol=1e-5)
 
 
-@pytest.mark.parametrize(
-    "data, result",
-    [
-        (DATA["s2_im"], DATA["cl_mask"]),
-    ],
-)
+@pytest.mark.parametrize("data, result", [(DATA["s2_im"], DATA["cl_mask"])])
 def test_get_cloud_masks(cloud_detector: S2PixelCloudDetector, data: np.ndarray, result: np.ndarray) -> None:
     cloud_mask = cloud_detector.get_cloud_masks(data)
     assert_array_equal(cloud_mask, result)
 
 
-@pytest.mark.parametrize(
-    "data, result",
-    [
-        (DATA["cl_probs"], DATA["cl_mask"]),
-    ],
-)
+@pytest.mark.parametrize("data, result", [(DATA["cl_probs"], DATA["cl_mask"])])
 def test_get_mask_from_prob(cloud_detector: S2PixelCloudDetector, data: np.ndarray, result: np.ndarray) -> None:
     cloud_mask_from_prob = cloud_detector.get_mask_from_prob(data)
     assert_array_equal(cloud_mask_from_prob, result)
