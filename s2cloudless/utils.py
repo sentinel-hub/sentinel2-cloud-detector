@@ -143,7 +143,6 @@ def download_bands_and_valid_data_mask(
 
     responses = client.download([api_request.download_list[0] for api_request in api_requests])
 
-    # pylint: disable=not-an-iterable
     data = np.asarray([response["default.tif"] for response in responses], dtype=np.float32)
     norm_factors = [response["userdata.json"]["norm_factor"] for response in responses]
     del responses
