@@ -79,7 +79,7 @@ def get_timestemps(
     maxcc: Optional[float] = None,
     data_collection: DataCollection = DataCollection.SENTINEL2_L1C,
     config: Optional[SHConfig] = None,
-    time_difference: dt.timedelta = None,
+    time_difference: Optional[dt.timedelta] = None,
 ) -> List[dt.datetime]:
     """Get the list of timestamps from within date range for which data of the bbox is available."""
     time_difference = time_difference if time_difference else dt.timedelta(seconds=0)
