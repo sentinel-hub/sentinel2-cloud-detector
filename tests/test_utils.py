@@ -45,6 +45,9 @@ def test_get_s2_evalscript(all_bands: bool, reflectance: bool) -> None:
     assert output_sample_type_str in evalscript
 
 
+pytestmark = pytest.mark.sh_integration
+
+
 @pytest.mark.parametrize(
     "test_input, expected",
     [
