@@ -115,7 +115,7 @@ def download_bands_and_valid_data_mask(
     resolution: Optional[Tuple[float, float]] = None,
     all_bands: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Downloaded specifid data"""
+    """Download all data required for running the cloud-masking process."""
 
     client = SentinelHubDownloadClient(config=config)
 
