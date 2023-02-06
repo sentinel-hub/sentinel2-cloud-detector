@@ -81,7 +81,7 @@ def get_timestemps(
     config: Optional[SHConfig] = None,
     time_difference: Optional[dt.timedelta] = None,
 ) -> List[dt.datetime]:
-    """Get the list of timestamps from within date range for which data of the bbox is available."""
+    """Get the list of timestamps for which data is available. Takes into account the bbox and time interval."""
     time_difference = time_difference if time_difference else dt.timedelta(seconds=0)
 
     catalog = SentinelHubCatalog(config=config)
