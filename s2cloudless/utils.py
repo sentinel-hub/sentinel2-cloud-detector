@@ -106,6 +106,7 @@ def get_timestamps(
     return filter_times(search_iterator.get_timestamps(), time_difference)
 
 
+# pylint: disable-msg=too-many-locals
 def download_bands_and_valid_data_mask(
     bbox: BBox,
     timestamps: List[dt.datetime],
@@ -149,6 +150,5 @@ def download_bands_and_valid_data_mask(
 
     bands = np.array(data, dtype=np.float32)
     normalized_bands = (np.round(array * factor, 4) for array, factor in zip(bands[..., :-1], norm_factors))
-    data_mask = bands[..., -1] != 0
 
-    return np.asarray(list(normalized_bands), dtype=np.float32), data_mask
+    return np.asarray(list(normalized_bands), dtype=np.float32), bands[..., -1] != 0
