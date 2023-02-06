@@ -10,7 +10,7 @@ import pytest
 
 from sentinelhub import CRS, BBox, SHConfig
 
-from s2cloudless.utils import download_bands_and_valid_data_mask, get_s2_evalscript, get_timestemps
+from s2cloudless.utils import download_bands_and_valid_data_mask, get_s2_evalscript, get_timestamps
 
 BBOX1 = BBox([-90.9216499, 14.4190528, -90.8186531, 14.5520163], crs=CRS.WGS84)
 BBOX2 = BBox(((624024.4, 8214123.1), (661906.6, 8276948.7)), crs=CRS(32738))
@@ -45,9 +45,6 @@ def test_get_s2_evalscript(all_bands: bool, reflectance: bool) -> None:
     assert output_sample_type_str in evalscript
 
 
-pytestmark = pytest.mark.sh_integration
-
-
 @pytest.mark.parametrize(
     "test_input, expected",
     [
@@ -71,10 +68,11 @@ pytestmark = pytest.mark.sh_integration
         ),
     ],
 )
-def test_get_timestemps(test_input: dict, config: SHConfig, expected: List[dt.datetime]) -> None:
-    timestemps = get_timestemps(**test_input, config=config)
-    assert len(timestemps) == len(expected)
-    assert all([val.replace(tzinfo=None) == exp for exp, val in zip(expected, timestemps)])
+@pytest.mark.sh_integration
+def test_get_timestamps(test_input: dict, config: SHConfig, expected: List[dt.datetime]) -> None:
+    timestamps = get_timestamps(**test_input, config=config)
+    assert len(timestamps) == len(expected)
+    assert all([val.replace(tzinfo=None) == exp for exp, val in zip(expected, timestamps)])
 
 
 @pytest.mark.parametrize(
@@ -101,6 +99,7 @@ def test_get_timestemps(test_input: dict, config: SHConfig, expected: List[dt.da
         ),
     ],
 )
+@pytest.mark.sh_integration
 def test_download_bands_and_valid_data_mask(
     test_input: dict, config: SHConfig, expected_shape: Tuple[int, int, int]
 ) -> None:

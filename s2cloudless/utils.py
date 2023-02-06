@@ -72,7 +72,7 @@ def get_s2_evalscript(all_bands: bool = False, reflectance: bool = False) -> str
     ).strip("\n ")
 
 
-def get_timestemps(
+def get_timestamps(
     bbox: BBox,
     time_interval: Tuple[dt.datetime, dt.datetime],
     *,
