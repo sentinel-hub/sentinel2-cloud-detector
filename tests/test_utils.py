@@ -14,7 +14,6 @@ from s2cloudless.utils import download_bands_and_valid_data_mask, get_s2_evalscr
 
 BBOX1 = BBox([-90.9216499, 14.4190528, -90.8186531, 14.5520163], crs=CRS.WGS84)
 BBOX2 = BBox(((624024.4, 8214123.1), (661906.6, 8276948.7)), crs=CRS(32738))
-DAY = dt.timedelta(seconds=24 * 60 * 60)
 
 
 @pytest.fixture(name="config")
@@ -71,14 +70,13 @@ def test_get_s2_evalscript(all_bands: bool, reflectance: bool) -> None:
 @pytest.mark.sh_integration
 def test_get_timestamps(test_input: dict, config: SHConfig, expected: List[dt.datetime]) -> None:
     timestamps = get_timestamps(**test_input, config=config)
-    assert len(timestamps) == len(expected)
-    assert all([val.replace(tzinfo=None) == exp for exp, val in zip(expected, timestamps)])
+    assert [timestamp.replace(tzinfo=None) for timestamp in timestamps] == expected
 
 
 @pytest.mark.parametrize(
     "test_input, expected_shape",
     [
-        ({"bbox": BBOX1, "timestamps": [dt.datetime(2021, 1, 4)], "size": (60, 81), "all_bands": True}, (1, 81, 60)),
+        ({"bbox": BBOX1, "timestamps": [dt.datetime(2021, 1, 4)], "size": (60, 81)}, (1, 81, 60, 13)),
         (
             {
                 "bbox": BBOX1,
@@ -86,7 +84,7 @@ def test_get_timestamps(test_input: dict, config: SHConfig, expected: List[dt.da
                 "size": (60, 81),
                 "all_bands": True,
             },
-            (2, 81, 60),
+            (2, 81, 60, 13),
         ),
         (
             {
@@ -95,7 +93,16 @@ def test_get_timestamps(test_input: dict, config: SHConfig, expected: List[dt.da
                 "size": (60, 81),
                 "all_bands": False,
             },
-            (2, 81, 60),
+            (2, 81, 60, 10),
+        ),
+        (
+            {
+                "bbox": BBOX2,
+                "timestamps": [dt.datetime(2016, 7, 18, 7, 14, 4)],
+                "resolution": (100, 100),
+                "all_bands": False,
+            },
+            (1, 628, 379, 10),
         ),
     ],
 )
@@ -104,8 +111,7 @@ def test_download_bands_and_valid_data_mask(
     test_input: dict, config: SHConfig, expected_shape: Tuple[int, int, int]
 ) -> None:
     bands, mask = download_bands_and_valid_data_mask(**test_input, config=config)
-    band_num = 10 if not test_input["all_bands"] else 13
-    assert bands.shape == expected_shape + (band_num,)
+    assert bands.shape == expected_shape
     assert bands.dtype == np.float32
-    assert mask.shape == expected_shape
+    assert mask.shape == expected_shape[:-1]
     assert mask.dtype == bool
