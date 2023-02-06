@@ -28,6 +28,7 @@ function setup() {{
       units: "{input_units}"
     }}],
     output: {{
+      id: "bands",
       bands: {band_number},
       sampleType: "{output_sample_type}"
     }}
@@ -130,7 +131,7 @@ def download_bands_and_valid_data_mask(
                 )
             ],
             responses=[
-                SentinelHubRequest.output_response("default", MimeType.TIFF),
+                SentinelHubRequest.output_response("bands", MimeType.TIFF),
                 SentinelHubRequest.output_response("userdata", MimeType.JSON),
             ],
             bbox=bbox,
@@ -139,13 +140,12 @@ def download_bands_and_valid_data_mask(
             config=config,
         )
 
-        api_requests.append(request)
+        api_requests.extend(request.download_list)
 
-    responses = client.download([api_request.download_list[0] for api_request in api_requests])
+    responses = client.download(api_requests)
 
-    data = np.asarray([response["default.tif"] for response in responses], dtype=np.float32)
+    data = np.asarray([response["bands.tif"] for response in responses], dtype=np.float32)
     norm_factors = [response["userdata.json"]["norm_factor"] for response in responses]
-    del responses
 
     normalized_bands = (np.round(array * factor, 4) for array, factor in zip(data[..., :-1], norm_factors))
     return np.asarray(list(normalized_bands), dtype=np.float32), data[..., -1] != 0
