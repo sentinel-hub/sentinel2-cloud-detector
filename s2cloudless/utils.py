@@ -1,5 +1,21 @@
 """Module providing various utilities."""
 
+import datetime as dt
+from typing import List, Optional, Tuple
+
+import numpy as np
+
+from sentinelhub import (
+    BBox,
+    DataCollection,
+    MimeType,
+    SentinelHubCatalog,
+    SentinelHubDownloadClient,
+    SentinelHubRequest,
+    SHConfig,
+    filter_times,
+)
+
 S2_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12"]
 MODEL_BAND_IDS = [0, 1, 3, 4, 7, 8, 9, 10, 11, 12]
 
@@ -12,6 +28,7 @@ function setup() {{
       units: "{input_units}"
     }}],
     output: {{
+      id: "bands",
       bands: {band_number},
       sampleType: "{output_sample_type}"
     }}
@@ -54,3 +71,84 @@ def get_s2_evalscript(all_bands: bool = False, reflectance: bool = False) -> str
         output_sample_type="FLOAT32" if reflectance else "UINT16",
         metadata_evalscript="" if reflectance else METADATA_EVALSCRIPT_TEMPLATE,
     ).strip("\n ")
+
+
+def get_timestamps(
+    bbox: BBox,
+    time_interval: Tuple[dt.datetime, dt.datetime],
+    *,
+    maxcc: Optional[float] = None,
+    data_collection: DataCollection = DataCollection.SENTINEL2_L1C,
+    config: Optional[SHConfig] = None,
+    time_difference: Optional[dt.timedelta] = None,
+) -> List[dt.datetime]:
+    """Get the list of timestamps for which data is available. Takes into account the bbox and time interval."""
+    time_difference = time_difference if time_difference else dt.timedelta(seconds=0)
+
+    catalog = SentinelHubCatalog(config=config)
+    cloud_cover_query = None
+    if maxcc is not None:
+        cloud_cover_query = f"eo:cloud_cover < {100 * float(maxcc)}"
+
+    search_iterator = catalog.search(
+        data_collection,
+        bbox=bbox,
+        time=time_interval,
+        filter=cloud_cover_query,
+        fields={
+            "include": [
+                "properties.datetime",
+            ],
+            "exclude": [],
+        },
+    )
+
+    return filter_times(search_iterator.get_timestamps(), time_difference)
+
+
+# pylint: disable-msg=too-many-locals
+def download_bands_and_valid_data_mask(
+    bbox: BBox,
+    timestamps: List[dt.datetime],
+    *,
+    data_collection: DataCollection = DataCollection.SENTINEL2_L1C,
+    config: Optional[SHConfig] = None,
+    size: Optional[Tuple[int, int]] = None,
+    resolution: Optional[Tuple[float, float]] = None,
+    all_bands: bool = True,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Download all data required for running the cloud-masking process."""
+
+    client = SentinelHubDownloadClient(config=config)
+
+    api_requests = []
+    for timestamp in timestamps:
+        request = SentinelHubRequest(
+            evalscript=get_s2_evalscript(all_bands=all_bands, reflectance=False),
+            input_data=[
+                SentinelHubRequest.input_data(
+                    data_collection=data_collection,
+                    time_interval=(timestamp, timestamp),
+                )
+            ],
+            responses=[
+                SentinelHubRequest.output_response("bands", MimeType.TIFF),
+                SentinelHubRequest.output_response("userdata", MimeType.JSON),
+            ],
+            bbox=bbox,
+            size=size,
+            resolution=resolution,
+            config=config,
+        )
+
+        api_requests.extend(request.download_list)
+
+    responses = client.download(api_requests)
+
+    bands, mask = [], []
+    for response in responses:
+        data = response["bands.tif"]
+        bands.append(data[..., :-1] * response["userdata.json"]["norm_factor"])
+        mask.append(data[..., -1])
+
+    return np.array(bands, dtype=np.float32), np.array(mask, dtype=bool)
