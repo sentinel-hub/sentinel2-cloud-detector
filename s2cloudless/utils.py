@@ -144,9 +144,10 @@ def download_bands_and_valid_data_mask(
 
     responses = client.download(api_requests)
 
-    norm_factors = [response["userdata.json"]["norm_factor"] for response in responses]
-    data = np.array([response["bands.tif"] for response in responses], dtype=np.float32)
+    bands, mask = [], []
+    for response in responses:
+        data = response["bands.tif"]
+        bands.append(data[..., :-1] * response["userdata.json"]["norm_factor"])
+        mask.append(data[..., -1])
 
-    normalized_bands = [array * factor for array, factor in zip(data[..., :-1], norm_factors)]
-
-    return np.array(normalized_bands), data[..., -1] != 0
+    return np.array(bands, dtype=np.float32), np.array(mask, dtype=bool)
