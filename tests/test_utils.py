@@ -99,10 +99,10 @@ def test_get_timestamps(test_input: dict, config: SHConfig, expected: List[dt.da
             {
                 "bbox": BBOX2,
                 "timestamps": [dt.datetime(2016, 7, 18, 7, 14, 4)],
-                "resolution": (100, 100),
+                "resolution": (150, 150),
                 "all_bands": False,
             },
-            (1, 628, 379, 10),
+            (1, 419, 253, 10),
         ),
     ],
 )
