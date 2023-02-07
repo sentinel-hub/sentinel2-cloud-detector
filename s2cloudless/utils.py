@@ -106,7 +106,6 @@ def get_timestamps(
     return filter_times(search_iterator.get_timestamps(), time_difference)
 
 
-# pylint: disable-msg=too-many-locals
 def download_bands_and_valid_data_mask(
     bbox: BBox,
     timestamps: List[dt.datetime],
