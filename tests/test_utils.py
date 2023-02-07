@@ -13,7 +13,7 @@ from sentinelhub import CRS, BBox, SHConfig
 from s2cloudless.utils import download_bands_and_valid_data_mask, get_s2_evalscript, get_timestamps
 
 BBOX1 = BBox([-90.9216499, 14.4190528, -90.8186531, 14.5520163], crs=CRS.WGS84)
-BBOX2 = BBox(((624024.4, 8214123.1), (661906.6, 8276948.7)), crs=CRS(32738))
+BBOX2 = BBox(((620000, 8210000), (660000, 8270000)), crs=CRS(32738))
 
 
 @pytest.fixture(name="config")
@@ -99,10 +99,10 @@ def test_get_timestamps(test_input: dict, config: SHConfig, expected: List[dt.da
             {
                 "bbox": BBOX2,
                 "timestamps": [dt.datetime(2016, 7, 18, 7, 14, 4)],
-                "resolution": (150, 150),
+                "resolution": (200, 200),
                 "all_bands": False,
             },
-            (1, 419, 253, 10),
+            (1, 300, 200, 10),
         ),
     ],
 )
