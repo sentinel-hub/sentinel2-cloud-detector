@@ -1,4 +1,3 @@
-black[jupyter]>=22.3.0
 codecov
 mypy
 pre-commit
