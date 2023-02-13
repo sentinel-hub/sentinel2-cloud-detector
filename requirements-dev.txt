@@ -1,10 +1,7 @@
-pytest>=3.0.0
-pytest-subtests
-pytest-cov
 codecov
-black[jupyter]>=22.3.0
-isort
-flake8
-nbqa
+mypy
+pre-commit
 pylint>=2.14.0
+pytest>=3.0.0
+pytest-cov
 twine
