@@ -1,6 +1,3 @@
-"""
-Tests for pixel_classifier.py module
-"""
 import os
 
 import numpy as np

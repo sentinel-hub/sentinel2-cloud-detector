@@ -1,6 +1,3 @@
-"""
-Tests for cloud_detector.py module
-"""
 import os
 
 import numpy as np

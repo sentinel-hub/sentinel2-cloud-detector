@@ -1,6 +1,3 @@
-"""
-Tests for utils.py module
-"""
 import datetime as dt
 import os
 from typing import List, Tuple
