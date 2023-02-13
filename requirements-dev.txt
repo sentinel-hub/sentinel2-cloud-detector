@@ -1,12 +1,7 @@
-black[jupyter]>=22.3.0
 codecov
-flake8
-isort
 mypy
-nbqa
 pre-commit
 pylint>=2.14.0
 pytest>=3.0.0
 pytest-cov
-pytest-subtests
 twine
