@@ -4,3 +4,4 @@ include README.md
 include LICENSE.md
 include setup.py
 include s2cloudless/models/*
+include s2cloudless/py.typed
