@@ -2,13 +2,12 @@
 import os
 from typing import Any, Optional
 
+import cv2
 import numpy as np
 from lightgbm import Booster
-from scipy.ndimage import convolve
-from skimage.morphology import dilation, disk
 
 from .pixel_classifier import PixelClassifier
-from .utils import MODEL_BAND_IDS
+from .utils import MODEL_BAND_IDS, cv2_disk
 
 MODEL_FILENAME = "pixel_s2_cloud_detector_lightGBM_v0.1.txt"
 
@@ -59,10 +58,11 @@ class S2PixelCloudDetector:
         self._classifier: Optional[PixelClassifier] = None
 
         if average_over is not None and average_over > 0:
-            self.conv_filter = disk(average_over) / np.sum(disk(average_over))
+            disk = cv2_disk(average_over)
+            self.conv_filter = disk / np.sum(disk)
 
         if dilation_size is not None and dilation_size > 0:
-            self.dilation_filter = disk(dilation_size)
+            self.dilation_filter = cv2_disk(dilation_size)
 
     @property
     def classifier(self) -> PixelClassifier:
@@ -135,14 +135,18 @@ class S2PixelCloudDetector:
 
         if self.average_over:
             cloud_masks = np.asarray(
-                [convolve(cloud_prob, self.conv_filter) > threshold for cloud_prob in cloud_probs], dtype=np.uint8
+                [
+                    cv2.filter2D(cloud_prob, -1, self.conv_filter, borderType=cv2.BORDER_REFLECT) > threshold
+                    for cloud_prob in cloud_probs
+                ],
+                dtype=np.uint8,
             )
         else:
             cloud_masks = (cloud_probs > threshold).astype(np.int8)
 
         if self.dilation_size:
             cloud_masks = np.asarray(
-                [dilation(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks], dtype=np.uint8
+                [cv2.dilate(cloud_mask, self.dilation_filter) for cloud_mask in cloud_masks], dtype=np.uint8
             )
 
         return cloud_masks
