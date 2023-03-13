@@ -3,6 +3,7 @@
 import datetime as dt
 from typing import List, Optional, Tuple
 
+import cv2
 import numpy as np
 
 from sentinelhub import (
@@ -152,3 +153,10 @@ def download_bands_and_valid_data_mask(
         mask.append(data[..., -1])
 
     return np.array(bands, dtype=np.float32), np.array(mask, dtype=bool)
+
+
+def cv2_disk(radius: int) -> np.ndarray:
+    """Recreates the disk structural element from skimage.morphology using OpenCV."""
+    return cv2.circle(
+        np.zeros((radius * 2 + 1, radius * 2 + 1), dtype=np.uint8), (radius, radius), radius, color=1, thickness=-1
+    )
