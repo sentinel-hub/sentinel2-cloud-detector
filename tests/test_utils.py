@@ -17,7 +17,7 @@ BBOX2 = BBox(((620000, 8210000), (660000, 8270000)), crs=CRS(32738))
 def config_fixture() -> SHConfig:
     config = SHConfig()
 
-    for param in config.get_params():
+    for param in config.to_dict():
         env_variable = param.upper()
         if os.environ.get(env_variable):
             setattr(config, param, os.environ.get(env_variable))
