@@ -16,62 +16,11 @@ from sentinelhub import (
     SHConfig,
     filter_times,
 )
+from sentinelhub.evalscript import generate_evalscript
 
 S2_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12"]
 MODEL_BAND_IDS = [0, 1, 3, 4, 7, 8, 9, 10, 11, 12]
-
-DATA_EVALSCRIPT_TEMPLATE = """
-//VERSION=3
-function setup() {{
-  return {{
-    input: [{{
-      bands: [{bands}],
-      units: "{input_units}"
-    }}],
-    output: {{
-      id: "bands",
-      bands: {band_number},
-      sampleType: "{output_sample_type}"
-    }}
-  }};
-}}
-{metadata_evalscript}
-function evaluatePixel(sample) {{
-  return [{sample_bands}];
-}}
-"""
-
-METADATA_EVALSCRIPT_TEMPLATE = """
-function updateOutputMetadata(scenes, inputMetadata, outputMetadata) {
-  outputMetadata.userData = {
-    "norm_factor":  inputMetadata.normalizationFactor
-  }
-}
-"""
-
-
-def get_s2_evalscript(all_bands: bool = False, reflectance: bool = False) -> str:
-    """Provides an `s2cloudless` suited evalscript to download Sentinel-2 data
-
-    :param all_bands: If `True` the evalscript will use all bands. Otherwise it will use only bands needed for cloud
-        masking.
-    :param reflectance: If `True` the evalscript will define reflectance values. Otherwise it will use digital
-        numbers together with normalization factors to rescale them.
-    :return: An evalscript to be used with the `sentinelhub` package.
-    """
-    bands = S2_BANDS
-    if not all_bands:
-        bands = [bands[index] for index in MODEL_BAND_IDS]
-    bands = bands + ["dataMask"]
-
-    return DATA_EVALSCRIPT_TEMPLATE.format(
-        bands=", ".join(f'"{band}"' for band in bands),
-        sample_bands=", ".join(f"sample.{band}" for band in bands),
-        band_number=len(bands),
-        input_units="reflectance" if reflectance else "DN",
-        output_sample_type="FLOAT32" if reflectance else "UINT16",
-        metadata_evalscript="" if reflectance else METADATA_EVALSCRIPT_TEMPLATE,
-    ).strip("\n ")
+MODEL_BANDS = [S2_BANDS[band_idx] for band_idx in MODEL_BAND_IDS]
 
 
 def get_timestamps(
@@ -122,10 +71,21 @@ def download_bands_and_valid_data_mask(
 
     client = SentinelHubDownloadClient(config=config)
 
+    bands_output = "bands"
+    data_mask_output = "dataMask"
+    bands = S2_BANDS if all_bands else MODEL_BANDS
+    evalscript = generate_evalscript(
+        data_collection=data_collection,
+        bands=bands,
+        meta_bands=[data_mask_output],
+        merged_output=bands_output,
+        prioritize_dn=True,
+    )
+
     api_requests = []
     for timestamp in timestamps:
         request = SentinelHubRequest(
-            evalscript=get_s2_evalscript(all_bands=all_bands, reflectance=False),
+            evalscript=evalscript,
             input_data=[
                 SentinelHubRequest.input_data(
                     data_collection=data_collection,
@@ -133,7 +93,8 @@ def download_bands_and_valid_data_mask(
                 )
             ],
             responses=[
-                SentinelHubRequest.output_response("bands", MimeType.TIFF),
+                SentinelHubRequest.output_response(bands_output, MimeType.TIFF),
+                SentinelHubRequest.output_response(data_mask_output, MimeType.TIFF),
                 SentinelHubRequest.output_response("userdata", MimeType.JSON),
             ],
             bbox=bbox,
@@ -148,9 +109,8 @@ def download_bands_and_valid_data_mask(
 
     bands, mask = [], []
     for response in responses:
-        data = response["bands.tif"]
-        bands.append(data[..., :-1] * response["userdata.json"]["norm_factor"])
-        mask.append(data[..., -1])
+        bands.append(response[f"{bands_output}.tif"] * response["userdata.json"]["norm_factor"])
+        mask.append(response[f"{data_mask_output}.tif"])
 
     return np.array(bands, dtype=np.float32), np.array(mask, dtype=bool)
 
