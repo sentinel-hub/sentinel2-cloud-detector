@@ -4,24 +4,12 @@ from typing import List, Tuple
 import numpy as np
 import pytest
 
-from sentinelhub import CRS, BBox, SHConfig
+from sentinelhub import CRS, BBox
 
 from s2cloudless.utils import download_bands_and_valid_data_mask, get_s2_evalscript, get_timestamps
 
-BBOX1 = BBox([-90.9216499, 14.4190528, -90.8186531, 14.5520163], crs=CRS.WGS84)
+BBOX1 = BBox((-90.9216499, 14.4190528, -90.8186531, 14.5520163), crs=CRS.WGS84)
 BBOX2 = BBox(((620000, 8210000), (660000, 8270000)), crs=CRS(32738))
-
-
-@pytest.fixture(name="config")
-def config_fixture() -> SHConfig:
-    config = SHConfig()
-
-    # for param in config.get_params():
-    #     env_variable = param.upper()
-    #     if os.environ.get(env_variable):
-    #         setattr(config, param, os.environ.get(env_variable))
-
-    return config
 
 
 @pytest.mark.parametrize("all_bands", [True, False])
@@ -64,8 +52,8 @@ def test_get_s2_evalscript(all_bands: bool, reflectance: bool) -> None:
     ],
 )
 @pytest.mark.sh_integration
-def test_get_timestamps(test_input: dict, config: SHConfig, expected: List[dt.datetime]) -> None:
-    timestamps = get_timestamps(**test_input, config=config)
+def test_get_timestamps(test_input: dict, expected: List[dt.datetime]) -> None:
+    timestamps = get_timestamps(**test_input)
     assert [timestamp.replace(tzinfo=None) for timestamp in timestamps] == expected
 
 
@@ -103,10 +91,8 @@ def test_get_timestamps(test_input: dict, config: SHConfig, expected: List[dt.da
     ],
 )
 @pytest.mark.sh_integration
-def test_download_bands_and_valid_data_mask(
-    test_input: dict, config: SHConfig, expected_shape: Tuple[int, int, int]
-) -> None:
-    bands, mask = download_bands_and_valid_data_mask(**test_input, config=config)
+def test_download_bands_and_valid_data_mask(test_input: dict, expected_shape: Tuple[int, int, int]) -> None:
+    bands, mask = download_bands_and_valid_data_mask(**test_input)
     assert bands.shape == expected_shape
     assert bands.dtype == np.float32
     assert mask.shape == expected_shape[:-1]
