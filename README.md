@@ -19,7 +19,7 @@ The **s2cloudless** algorithm was part of an international collaborative effort 
 
 ## Installation
 
-The package requires a Python version >= 3.7. The package is available on
+The package requires a Python version >= 3.8. The package is available on
 the PyPI package manager and can be installed with
 
 ```
