@@ -1,5 +1,4 @@
 import datetime as dt
-import os
 from typing import List, Tuple
 
 import numpy as np
@@ -17,10 +16,10 @@ BBOX2 = BBox(((620000, 8210000), (660000, 8270000)), crs=CRS(32738))
 def config_fixture() -> SHConfig:
     config = SHConfig()
 
-    for param in config.get_params():
-        env_variable = param.upper()
-        if os.environ.get(env_variable):
-            setattr(config, param, os.environ.get(env_variable))
+    # for param in config.get_params():
+    #     env_variable = param.upper()
+    #     if os.environ.get(env_variable):
+    #         setattr(config, param, os.environ.get(env_variable))
 
     return config
 
