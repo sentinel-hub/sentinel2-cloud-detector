@@ -1,44 +1,15 @@
 import datetime as dt
-from typing import List, Tuple
+from typing import Tuple
 
 import numpy as np
 import pytest
 
 from sentinelhub import CRS, BBox
 
-from s2cloudless.utils import download_bands_and_valid_data_mask, get_timestamps
+from s2cloudless.utils import download_bands_and_valid_data_mask
 
 BBOX1 = BBox((-90.9216499, 14.4190528, -90.8186531, 14.5520163), crs=CRS.WGS84)
 BBOX2 = BBox(((620000, 8210000), (660000, 8270000)), crs=CRS(32738))
-
-
-@pytest.mark.parametrize(
-    "test_input, expected",
-    [
-        ({"bbox": BBOX1, "time_interval": (dt.datetime(2021, 1, 1), dt.datetime(2021, 1, 1))}, []),
-        (
-            {"bbox": BBOX1, "time_interval": (dt.datetime(2021, 1, 1), dt.datetime(2021, 1, 10))},
-            [
-                dt.datetime(2021, 1, 4, 16, 39, 29),
-                dt.datetime(2021, 1, 4, 16, 39, 44),
-                dt.datetime(2021, 1, 9, 16, 39, 29),
-                dt.datetime(2021, 1, 9, 16, 39, 43),
-            ],
-        ),
-        (
-            {
-                "bbox": BBOX1,
-                "time_interval": (dt.datetime(2021, 1, 1), dt.datetime(2021, 1, 10)),
-                "time_difference": dt.timedelta(seconds=600),
-            },
-            [dt.datetime(2021, 1, 4, 16, 39, 29), dt.datetime(2021, 1, 9, 16, 39, 29)],
-        ),
-    ],
-)
-@pytest.mark.sh_integration
-def test_get_timestamps(test_input: dict, expected: List[dt.datetime]) -> None:
-    timestamps = get_timestamps(**test_input)
-    assert [timestamp.replace(tzinfo=None) for timestamp in timestamps] == expected
 
 
 @pytest.mark.parametrize(

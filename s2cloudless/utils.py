@@ -6,54 +6,12 @@ from typing import List, Optional, Tuple
 import cv2
 import numpy as np
 
-from sentinelhub import (
-    BBox,
-    DataCollection,
-    MimeType,
-    SentinelHubCatalog,
-    SentinelHubDownloadClient,
-    SentinelHubRequest,
-    SHConfig,
-    filter_times,
-)
+from sentinelhub import BBox, DataCollection, MimeType, SentinelHubDownloadClient, SentinelHubRequest, SHConfig
 from sentinelhub.evalscript import generate_evalscript
 
 S2_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12"]
 MODEL_BAND_IDS = [0, 1, 3, 4, 7, 8, 9, 10, 11, 12]
 MODEL_BANDS = [S2_BANDS[band_idx] for band_idx in MODEL_BAND_IDS]
-
-
-def get_timestamps(
-    bbox: BBox,
-    time_interval: Tuple[dt.datetime, dt.datetime],
-    *,
-    maxcc: Optional[float] = None,
-    data_collection: DataCollection = DataCollection.SENTINEL2_L1C,
-    config: Optional[SHConfig] = None,
-    time_difference: Optional[dt.timedelta] = None,
-) -> List[dt.datetime]:
-    """Get the list of timestamps for which data is available. Takes into account the bbox and time interval."""
-    time_difference = time_difference if time_difference else dt.timedelta(seconds=0)
-
-    catalog = SentinelHubCatalog(config=config)
-    cloud_cover_query = None
-    if maxcc is not None:
-        cloud_cover_query = f"eo:cloud_cover < {100 * float(maxcc)}"
-
-    search_iterator = catalog.search(
-        data_collection,
-        bbox=bbox,
-        time=time_interval,
-        filter=cloud_cover_query,
-        fields={
-            "include": [
-                "properties.datetime",
-            ],
-            "exclude": [],
-        },
-    )
-
-    return filter_times(search_iterator.get_timestamps(), time_difference)
 
 
 # pylint: disable-msg=too-many-locals
