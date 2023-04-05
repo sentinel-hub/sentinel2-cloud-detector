@@ -78,7 +78,7 @@ def download_bands_and_valid_data_mask(
         data_collection=data_collection,
         bands=bands,
         meta_bands=[data_mask_output],
-        merged_output=bands_output,
+        merged_bands_output=bands_output,
         prioritize_dn=True,
     )
 
