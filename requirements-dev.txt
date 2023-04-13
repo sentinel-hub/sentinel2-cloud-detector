@@ -1,4 +1,3 @@
-codecov
 mypy
 pre-commit
 pylint>=2.14.0
