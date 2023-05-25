@@ -1,7 +1,8 @@
 """Module providing various utilities."""
 
+from __future__ import annotations
+
 import datetime as dt
-from typing import List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -17,14 +18,14 @@ MODEL_BANDS = [S2_BANDS[band_idx] for band_idx in MODEL_BAND_IDS]
 # pylint: disable-msg=too-many-locals
 def download_bands_and_valid_data_mask(
     bbox: BBox,
-    timestamps: List[dt.datetime],
+    timestamps: list[dt.datetime],
     *,
     data_collection: DataCollection = DataCollection.SENTINEL2_L1C,
-    config: Optional[SHConfig] = None,
-    size: Optional[Tuple[int, int]] = None,
-    resolution: Optional[Tuple[float, float]] = None,
+    config: SHConfig | None = None,
+    size: tuple[int, int] | None = None,
+    resolution: tuple[float, float] | None = None,
     all_bands: bool = True,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Download all data required for running the cloud-masking process."""
 
     client = SentinelHubDownloadClient(config=config)

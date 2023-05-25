@@ -1,6 +1,8 @@
 """Module for pixel-based classification on Sentinel-2 L1C imagery."""
+from __future__ import annotations
+
 import os
-from typing import Any, Optional
+from typing import Any
 
 import cv2
 import numpy as np
@@ -41,9 +43,9 @@ class S2PixelCloudDetector:
         self,
         threshold: float = 0.4,
         all_bands: bool = False,
-        average_over: Optional[int] = 1,
-        dilation_size: Optional[int] = 1,
-        model_filename: Optional[str] = None,
+        average_over: int | None = 1,
+        dilation_size: int | None = 1,
+        model_filename: str | None = None,
     ):
         self.threshold = threshold
         self.all_bands = all_bands
@@ -55,7 +57,7 @@ class S2PixelCloudDetector:
             model_filename = os.path.join(package_dir, "models", MODEL_FILENAME)
         self.model_filename = model_filename
 
-        self._classifier: Optional[PixelClassifier] = None
+        self._classifier: PixelClassifier | None = None
 
         if average_over is not None and average_over > 0:
             disk = cv2_disk(average_over)
@@ -118,11 +120,10 @@ class S2PixelCloudDetector:
         """
         self._check_data_dimension(data, 4)
         cloud_probs = self.get_cloud_probability_maps(data, **kwargs)
-        cloud_masks = self.get_mask_from_prob(cloud_probs)
 
-        return cloud_masks
+        return self.get_mask_from_prob(cloud_probs)
 
-    def get_mask_from_prob(self, cloud_probs: np.ndarray, threshold: Optional[float] = None) -> np.ndarray:
+    def get_mask_from_prob(self, cloud_probs: np.ndarray, threshold: float | None = None) -> np.ndarray:
         """
         Returns cloud mask by applying convolution and dilation to cloud probabilities.
 

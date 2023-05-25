@@ -1,4 +1,3 @@
-import io
 import os
 
 from setuptools import find_packages, setup
@@ -16,7 +15,8 @@ def get_version():
 
 
 def get_long_description():
-    return io.open("README.md", encoding="utf-8").read()
+    with open("README.md", encoding="utf-8") as f:
+        f.read()
 
 
 def parse_requirements(filename: str):
