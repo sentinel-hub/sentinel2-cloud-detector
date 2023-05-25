@@ -4,8 +4,9 @@ from typing import Tuple
 import numpy as np
 import pytest
 
-from s2cloudless.utils import download_bands_and_valid_data_mask
 from sentinelhub import CRS, BBox
+
+from s2cloudless.utils import download_bands_and_valid_data_mask
 
 BBOX1 = BBox((-90.9216499, 14.4190528, -90.8186531, 14.5520163), crs=CRS.WGS84)
 BBOX2 = BBox(((620000, 8210000), (660000, 8270000)), crs=CRS(32738))
