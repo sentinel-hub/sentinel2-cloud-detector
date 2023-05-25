@@ -80,7 +80,7 @@ def test_image_predict(test_input: np.ndarray, expected: np.ndarray) -> None:
 
 def test_image_predict_proba(booster: Booster) -> None:
     classifier = PixelClassifier(booster)
-    array = np.random.default_rng().random(5, 5, 5, 10)
+    array = np.random.default_rng().random((5, 5, 5, 10))
 
     result = classifier.image_predict_proba(array)
 
