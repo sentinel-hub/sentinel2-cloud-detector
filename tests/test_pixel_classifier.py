@@ -46,7 +46,7 @@ T_Y = np.ones((5, 8))
 
 
 @pytest.mark.parametrize(
-    "test_input, expected",
+    ("test_input", "expected"),
     [
         (T_X_Y_B, T_X_Y),
         (
@@ -80,7 +80,7 @@ def test_image_predict(test_input: np.ndarray, expected: np.ndarray) -> None:
 
 def test_image_predict_proba(booster: Booster) -> None:
     classifier = PixelClassifier(booster)
-    array = np.random.rand(5, 5, 5, 10)
+    array = np.random.default_rng().random((5, 5, 5, 10))
 
     result = classifier.image_predict_proba(array)
 

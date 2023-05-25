@@ -13,7 +13,7 @@ BBOX2 = BBox(((620000, 8210000), (660000, 8270000)), crs=CRS(32738))
 
 
 @pytest.mark.parametrize(
-    "test_input, expected_shape",
+    ("test_input", "expected_shape"),
     [
         ({"bbox": BBOX1, "timestamps": [dt.datetime(2021, 1, 4)], "size": (60, 81)}, (1, 81, 60, 13)),
         (
@@ -45,7 +45,7 @@ BBOX2 = BBox(((620000, 8210000), (660000, 8270000)), crs=CRS(32738))
         ),
     ],
 )
-@pytest.mark.sh_integration
+@pytest.mark.sh_integration()
 def test_download_bands_and_valid_data_mask(test_input: dict, expected_shape: Tuple[int, int, int]) -> None:
     bands, mask = download_bands_and_valid_data_mask(**test_input)
     assert bands.shape == expected_shape
