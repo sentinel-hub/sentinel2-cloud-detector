@@ -1,3 +1,62 @@
+[build-system]
+requires = ['hatchling']
+build-backend = 'hatchling.build'
+
+[tool.hatch.version]
+path = 's2cloudless/__init__.py'
+
+[tool.hatch.build.targets.sdist]
+include = ['/README.md', '/LICENSE.md', '/s2cloudless']
+
+[project]
+name = "s2cloudless"
+dynamic = ["version"]
+description = "Sentinel Hub's cloud detector for Sentinel-2 imagery"
+readme = "README.md"
+requires-python = ">= 3.8"
+license = { file = "LICENSE.md" }
+authors = [
+    { name = "Sinergise EO research team", email = "eoresearch@sinergise.com" },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "lightgbm>=2.0.11",
+    "numpy>=1.13.3",
+    "opencv-python-headless",
+    "sentinelhub>=3.9.0",
+    "typing_extensions",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build",
+    "mypy",
+    "pre-commit",
+    "pylint>=2.14.0",
+    "pytest>=3.0.0",
+    "pytest-cov",
+    "twine",
+]
+
+[project.urls]
+Homepage = "https://github.com/sentinel-hub/sentinel2-cloud-detector"
+Issues = "https://github.com/sentinel-hub/sentinel2-cloud-detector/issues"
+Source = "https://github.com/sentinel-hub/sentinel2-cloud-detector"
+Forum = "https://forum.sentinel-hub.com"
+
 [tool.black]
 line-length = 120
 preview = true
