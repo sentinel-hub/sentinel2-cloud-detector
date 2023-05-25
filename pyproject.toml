@@ -2,13 +2,6 @@
 line-length = 120
 preview = true
 
-[tool.isort]
-profile = "black"
-known_first_party = "sentinelhub"
-known_absolute = "s2cloudless"
-sections = ["FUTURE","STDLIB","THIRDPARTY","FIRSTPARTY","ABSOLUTE","LOCALFOLDER"]
-line_length = 120
-
 [tool.ruff]
 line-length = 120
 target-version = "py38"
@@ -58,10 +51,10 @@ ignore = [
     "PD011",  # suggests `.to_numpy` instead of `.values`, also does this for non-pandas objects...
     # potentially fixable
     "PT011", # complains for `pytest.raises(ValueError)` but we use it a lot
-    "N803", # clashes with the default naming of model protocols
+    "N803",  # clashes with the default naming of model protocols
 ]
 per-file-ignores = { "__init__.py" = ["F401"] }
-exclude = [".git", "__pycache__", "build", "dist", "sentinelhub/aws/*"]
+exclude = [".git", "__pycache__", "build", "dist"]
 
 
 [tool.ruff.isort]
@@ -69,12 +62,12 @@ section-order = [
     "future",
     "standard-library",
     "third-party",
+    "our-packages",
     "first-party",
     "local-folder",
-    "notebook-utilities",
 ]
-known-first-party = ["sentinelhub"]
-sections = { notebook-utilities = ["utils"] }
+known-first-party = ["s2cloudless"]
+sections = { our-packages = ["sentinelhub"] }
 
 [tool.nbqa.addopts]
 ruff = ["--extend-ignore=E402,T201,B015,B018,NPY002,UP,FA"]
@@ -96,7 +89,7 @@ disable = [
     "unsubscriptable-object",
     "invalid-unary-operand-type",
     "unspecified-encoding",
-    "unnecessary-ellipsis"
+    "unnecessary-ellipsis",
 ]
 
 [tool.pylint.design]
@@ -104,19 +97,13 @@ max-args = 10
 max-attributes = 20
 
 [tool.pytest.ini_options]
-markers = [
-    "sh_integration: marks integration tests with Sentinel Hub service"
-]
+markers = ["sh_integration: marks integration tests with Sentinel Hub service"]
 
 [tool.coverage.run]
-source = [
-    "s2cloudless"
-]
+source = ["s2cloudless"]
 
 [tool.coverage.report]
-omit = [
-    "models/*"
-]
+omit = ["models/*"]
 
 [tool.mypy]
 follow_imports = "normal"
