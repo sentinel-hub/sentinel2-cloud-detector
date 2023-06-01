@@ -1,18 +1,142 @@
+[build-system]
+requires = ['hatchling']
+build-backend = 'hatchling.build'
+
+[tool.hatch.version]
+path = 's2cloudless/__init__.py'
+
+[tool.hatch.build.targets.sdist]
+include = ['/README.md', '/LICENSE.md', '/s2cloudless']
+
+[project]
+name = "s2cloudless"
+dynamic = ["version"]
+description = "Sentinel Hub's cloud detector for Sentinel-2 imagery"
+readme = "README.md"
+requires-python = ">= 3.8"
+license = { file = "LICENSE.md" }
+authors = [
+    { name = "Sinergise EO research team", email = "eoresearch@sinergise.com" },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "lightgbm>=2.0.11",
+    "numpy>=1.13.3",
+    "opencv-python-headless",
+    "sentinelhub>=3.9.0",
+    "typing_extensions",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build",
+    "mypy",
+    "pre-commit",
+    "pylint>=2.14.0",
+    "pytest>=3.0.0",
+    "pytest-cov",
+    "twine",
+]
+
+[project.urls]
+Homepage = "https://github.com/sentinel-hub/sentinel2-cloud-detector"
+Issues = "https://github.com/sentinel-hub/sentinel2-cloud-detector/issues"
+Source = "https://github.com/sentinel-hub/sentinel2-cloud-detector"
+Forum = "https://forum.sentinel-hub.com"
+
 [tool.black]
 line-length = 120
 preview = true
 
-[tool.isort]
-profile = "black"
-known_first_party = "sentinelhub"
-known_absolute = "s2cloudless"
-sections = ["FUTURE","STDLIB","THIRDPARTY","FIRSTPARTY","ABSOLUTE","LOCALFOLDER"]
-line_length = 120
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+select = [
+    "F",   # pyflakes
+    "E",   # pycodestyle
+    "W",   # pycodestyle
+    "C90", # mccabe
+    "N",   # naming
+    "YTT", # flake-2020
+    "B",   # bugbear
+    "A",   # built-ins
+    "COM", # commas
+    "C4",  # comprehensions
+    "T10", # debugger statements
+    "ISC", # implicit string concatenation
+    "ICN", # import conventions
+    "G",   # logging format
+    "PIE", # flake8-pie
+    "T20", # print statements
+    "PT",  # pytest style
+    "RET", # returns
+    "SLF", # private member access
+    "SIM", # simplifications
+    "ARG", # unused arguments
+    "PD",  # pandas
+    "PGH", # pygrep hooks (useless noqa comments, eval statements etc.)
+    "FLY", # flynt
+    "RUF", # ruff rules
+    "NPY", # numpy
+    "I",   # isort
+    "UP",  # pyupgrade
+    "FA",  # checks where future import of annotations would make types nicer
+]
+fix = true
+fixable = [
+    "I",     # sort imports
+    "F401",  # remove redundant imports
+    "UP007", # use new-style union type annotations
+    "UP006", # use new-style built-in type annotations
+    "UP037", # remove quotes around types when not necessary
+    "FA100", # import future annotations where necessary (not autofixable ATM)
+]
+ignore = [
+    "SIM108", # tries to aggresively inline `if`, not always readable
+    "COM812", # trailing comma missing, fights with black
+    "PD011",  # suggests `.to_numpy` instead of `.values`, also does this for non-pandas objects...
+    # potentially fixable
+    "PT011", # complains for `pytest.raises(ValueError)` but we use it a lot
+    "N803",  # clashes with the default naming of model protocols
+]
+per-file-ignores = { "__init__.py" = ["F401"] }
+exclude = [".git", "__pycache__", "build", "dist"]
+
+
+[tool.ruff.isort]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "our-packages",
+    "first-party",
+    "local-folder",
+]
+known-first-party = ["s2cloudless"]
+sections = { our-packages = ["sentinelhub"] }
 
 [tool.nbqa.addopts]
-flake8 = [
-    "--extend-ignore=E402"
-]
+ruff = ["--extend-ignore=E402,T201,B015,B018,NPY002,UP,FA"]
+# E402 -> imports on top
+# T201 -> print found
+# B015 & B018 -> useless expression (used to show values in ipynb)
+# NPY002 -> use RNG instead of old numpy.random
+# UP -> suggestions for new-style classes (future import might confuse readers)
+# FA -> necessary future annotations import
 
 [tool.pylint.format]
 max-line-length = 120
@@ -25,7 +149,7 @@ disable = [
     "unsubscriptable-object",
     "invalid-unary-operand-type",
     "unspecified-encoding",
-    "unnecessary-ellipsis"
+    "unnecessary-ellipsis",
 ]
 
 [tool.pylint.design]
@@ -33,19 +157,13 @@ max-args = 10
 max-attributes = 20
 
 [tool.pytest.ini_options]
-markers = [
-    "sh_integration: marks integration tests with Sentinel Hub service"
-]
+markers = ["sh_integration: marks integration tests with Sentinel Hub service"]
 
 [tool.coverage.run]
-source = [
-    "s2cloudless"
-]
+source = ["s2cloudless"]
 
 [tool.coverage.report]
-omit = [
-    "models/*"
-]
+omit = ["models/*"]
 
 [tool.mypy]
 follow_imports = "normal"

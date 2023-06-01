@@ -1,7 +1,0 @@
-codecov
-mypy
-pre-commit
-pylint>=2.14.0
-pytest>=3.0.0
-pytest-cov
-twine
