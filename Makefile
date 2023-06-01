@@ -8,11 +8,11 @@ help:
 
 upload:
 	rm -r dist build | true
-	$(PYTHON) setup.py sdist bdist_wheel
+	python -m build --sdist --wheel
 	twine upload dist/*
 
 # For testing:
 test-upload:
 	rm -r dist build | true
-	$(PYTHON) setup.py sdist bdist_wheel
+	python -m build --sdist --wheel
 	twine upload --repository testpypi dist/*
