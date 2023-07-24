@@ -76,7 +76,7 @@ class PixelClassifier:
 
         if isinstance(self.classifier, Booster):
             probabilities = self.classifier.predict(pixels, **kwargs)
-            probabilities = np.vstack((1.0 - probabilities, probabilities)).transpose()
+            probabilities = np.vstack([1.0 - probabilities, probabilities]).transpose()
         else:
             probabilities = self.classifier.predict_proba(pixels, **kwargs)
 
