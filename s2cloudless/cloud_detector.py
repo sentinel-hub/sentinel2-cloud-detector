@@ -1,4 +1,5 @@
 """Module for pixel-based classification on Sentinel-2 L1C imagery."""
+
 from __future__ import annotations
 
 import os

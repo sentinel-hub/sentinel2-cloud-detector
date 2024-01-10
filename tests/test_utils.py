@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import datetime as dt
-from typing import Tuple
 
 import numpy as np
 import pytest
@@ -46,7 +47,7 @@ BBOX2 = BBox(((620000, 8210000), (660000, 8270000)), crs=CRS(32738))
     ],
 )
 @pytest.mark.sh_integration()
-def test_download_bands_and_valid_data_mask(test_input: dict, expected_shape: Tuple[int, int, int]) -> None:
+def test_download_bands_and_valid_data_mask(test_input: dict, expected_shape: tuple[int, int, int]) -> None:
     bands, mask = download_bands_and_valid_data_mask(**test_input)
     assert bands.shape == expected_shape
     assert bands.dtype == np.float32
