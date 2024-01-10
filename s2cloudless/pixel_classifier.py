@@ -1,4 +1,5 @@
 """Module for pixel-based classifiers."""
+
 from __future__ import annotations
 
 from typing import Any, Protocol
