@@ -1,4 +1,5 @@
 """Module for pixel-based classifiers."""
+
 from __future__ import annotations
 
 from typing import Any, Protocol
@@ -75,8 +76,8 @@ class PixelClassifier:
         pixels = data.reshape((-1, data.shape[-1]))
 
         if isinstance(self.classifier, Booster):
-            probabilities = self.classifier.predict(pixels, **kwargs)
-            probabilities = np.vstack((1.0 - probabilities, probabilities)).transpose()
+            proba = self.classifier.predict(pixels, **kwargs)
+            probabilities = np.vstack([1.0 - proba, proba]).transpose()  # type: ignore[operator, list-item]
         else:
             probabilities = self.classifier.predict_proba(pixels, **kwargs)
 
