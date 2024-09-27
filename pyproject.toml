@@ -35,7 +35,7 @@ classifiers = [
 ]
 dependencies = [
     "lightgbm>=2.0.11",
-    "numpy>=1.13.3,<2",
+    "numpy>=1.13.3",
     "opencv-python-headless",
     "sentinelhub>=3.9.0",
     "typing_extensions",
@@ -65,7 +65,7 @@ preview = true
 [tool.ruff]
 line-length = 120
 target-version = "py38"
-select = [
+lint.select = [
     "F",   # pyflakes
     "E",   # pycodestyle
     "W",   # pycodestyle
@@ -97,7 +97,7 @@ select = [
     "FA",  # checks where future import of annotations would make types nicer
 ]
 fix = true
-fixable = [
+lint.fixable = [
     "I",     # sort imports
     "F401",  # remove redundant imports
     "UP007", # use new-style union type annotations
@@ -105,7 +105,7 @@ fixable = [
     "UP037", # remove quotes around types when not necessary
     "FA100", # import future annotations where necessary (not autofixable ATM)
 ]
-ignore = [
+lint.ignore = [
     "SIM108", # tries to aggresively inline `if`, not always readable
     "COM812", # trailing comma missing, fights with black
     "PD011",  # suggests `.to_numpy` instead of `.values`, also does this for non-pandas objects...
@@ -113,11 +113,11 @@ ignore = [
     "PT011", # complains for `pytest.raises(ValueError)` but we use it a lot
     "N803",  # clashes with the default naming of model protocols
 ]
-per-file-ignores = { "__init__.py" = ["F401"] }
-exclude = [".git", "__pycache__", "build", "dist"]
+lint.per-file-ignores = { "__init__.py" = ["F401"] }
+exclude = [".git", "__pycache__", "build", "dist", "*.ipynb"]
 
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 section-order = [
     "future",
     "standard-library",
